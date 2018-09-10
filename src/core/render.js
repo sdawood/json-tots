@@ -63,7 +63,7 @@ function rephs(text, meta = 0) {
         return F.reduced(ast);
     }
 
-    return F.map(F.which(reph), F.iterator(matches, {indexed: true, kv: true}));
+    return F.map(reph, F.iterator(matches, {indexed: true, kv: true}));
 }
 
 function renderString(node, derefedList) {

@@ -489,11 +489,11 @@ describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `docum
             disclaimer: 'Ad: {{comment}}'
         },
         reviewsSummary: [
-            '{>>>{productReview}}',
+            '{>>>{productReview}}', //use this after rendering as a scoped-document, render next n templates with it
             '{+{$..score}}',
             {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
         ], // render next n nodes with leading rendered item as scoped-document
-        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable template, render with next node
+        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable scoped-document, render with next node
         twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
         images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'] // zip-align
     };
@@ -513,6 +513,63 @@ describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `docum
         "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
         "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"]
     };
+
+    let result;
+    const templateClone = traverse(template).clone();
+
+    beforeEach(() => {
+        result = transform(templateClone)(original);
+    });
+
+    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | ** }`', () => {
+    const template = {
+        allReviews: '{+{..productReview["fiveStar","oneStar"]}|*}',
+        fiveStar: '{+{..fiveStar}|*}' // example common use-case: multiple results for jsonpath.query are in an array, fiveStar item is also an array
+    };
+
+    const expectedResult = {
+            "allReviews": [{
+                "author": "user1@domain1.com",
+                "comment": "Excellent! Can't recommend it highly enough! Buy it!",
+                "first.name": "user1",
+                "score": 5,
+                "viewAs": "*****"
+            }, {
+                "author": "user2@domain2.com",
+                "comment": "Do yourself a favor and buy this.",
+                "first.name": "user2",
+                "score": 5,
+                "viewAs": "*****"
+            }, {
+                "author": "user3@domain3.com",
+                "comment": "Terrible product! Do no buy this.",
+                "first.name": "user3",
+                "score": 1,
+                "viewAs": "*----"
+            }],
+            "fiveStar": [{
+                "author": "user1@domain1.com",
+                "comment": "Excellent! Can't recommend it highly enough! Buy it!",
+                "first.name": "user1",
+                "score": 5,
+                "viewAs": "*****"
+            }, {
+                "author": "user2@domain2.com",
+                "comment": "Do yourself a favor and buy this.",
+                "first.name": "user2",
+                "score": 5,
+                "viewAs": "*****"
+            }]
+        };
 
     let result;
     const templateClone = traverse(template).clone();

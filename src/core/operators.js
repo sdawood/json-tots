@@ -92,7 +92,9 @@ const constraintsOperator = ({sources, tagHandlers}) => F.composes(constraints({
 
 const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
     const ops = {
-        ':': ast => {throw new Error('Not Implemented Yet: [symbol(:)]');},
+        ':': ast => {
+            throw new Error('Not Implemented Yet: [symbol(:)]');
+        },
         '#': ast => tag => {
             const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : jpify(tag);
             jp.value(tags, path, ast.value);
@@ -120,10 +122,13 @@ const enumerate = (ast, {meta = 4} = {}) => {
 
 const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'));
 
+const flatten = enumerable => F.flatten(enumerable);
+const doubleFlatten = enumerable => F.flatten(F.map(F.flatten, enumerable));
+
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     // console.log('INSIDE PIPE OPERATOR')
     /*
-    * example: pipes: { '$1': 'toInt', '$2': 'isEven', '@meta': 3 }
+    * example: pipes: { '$1': 'toInt', '$2': 'isEven', '$3': '**', @meta': 3 }
     */
     const pipes = ast.pipes;
     const fnTuples = [...
@@ -132,15 +137,18 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
             F.iterator(pipes, {indexed: true, kv: true})
         )
     ]
-        .sort(sortBy(0));
+    .sort(sortBy(0));
+
+    if (fnTuples.length === 0) {
+        throw new Error(`Invalid pipes ${ast.source}. Did you forget the pipe '|' separator in the closing braces?`);
+    }
+
     // ordered [['$1', 'toInt:arg1:arg2'], ['$2', 'isEven:arg1:arg2']]
     const fnPipeline = F.map(([_, fnExpr]) => {
         const [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
 
-        console.log({functions});
-
         if (!fnName in functions) {
-            throw new Error(`could not resolve function name [${fnName}]`)
+            throw new Error(`could not resolve function name [${fnName}]`) // @TODO: Alternatives to throwing inside a mapping!!!!
         }
         /*
         * A function accepting an argument should return a function of arity one that receives the value rendered
@@ -153,7 +161,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
          *
          */
         let phIndex = args.indexOf('__');
-        let fn = functions[fnName];
+        let fn = {...functions, '*': flatten, '**': doubleFlatten}[fnName];
 
         if (phIndex > 0) {
             args[phIndex] = F.__;
@@ -185,7 +193,7 @@ const applyAll = ({meta, sources, tags, tagHandlers, functions, context, config}
  * @param ast
  * @returns {{$inception, $depth: *}}
  */
-const inception = options => (ast, enumerable, {meta = 5}={}) => {
+const inception = options => (ast, enumerable, {meta = 5} = {}) => {
     const ops = {
         /**
          * Renders node n in current scope, render n+1 using n as scoped-document, effectively recurring into smaller scopes
