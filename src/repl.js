@@ -71,20 +71,21 @@ function main() {
 
     const template = {
         name: '{{title}}',
-        // reviews: {
-        //     high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
-        //         praise: '{+{["author","comment"]}}',
-        //         stars: '{{viewAs}}'
-        //     }, {keyAfter: 'literal value after'}
-        //     ],
-        //     low: ['{>> {productReview.oneStar}}', {
-        //         criticism: '{{[(@.length - 1)].comment}}'
-        //     }],
-        //     disclaimer: 'Ad: {{comment}}'
-        // },
-        // reviewsSummary: ['{>>|**{productReview}}', '{+{$..score}}'], // [keys]
-        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each
-        images: ['{+ %3 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'] // zip-align
+        reviews: {
+            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
+                praise: '{+{["author","comment"]}}',
+                stars: '{{viewAs}}'
+            }, {keyAfter: 'literal value after'}
+            ],
+            low: ['{>> {productReview.oneStar}}', {
+                criticism: '{{[(@.length - 1)].comment}}'
+            }],
+            disclaimer: 'Ad: {{comment}}'
+        },
+        reviewsSummary: ['{>>{productReview}}', '{+{$..score}}'], // render next n nodes with leading rendered item as scoped-document
+        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable template, render with next node
+        twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
+        images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'] // zip-align
         // profiles: ['{>> | ** | + {..author}}', 'www.domain.com/user/?name={{$}}']
     };
 

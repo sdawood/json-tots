@@ -418,7 +418,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
+describe.skip('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
     const template = {
         name: '{{title}}',
         reviews: {
@@ -453,6 +453,65 @@ describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `docum
         reviewsSummary: F.map(([k, v]) => k, F.iterator(original.productReview, {indexed: true, kv: true})),
         views: [original.pictures.map(x => `[${x.view}](${x.images.length})`)],
         profiles: [jp.query(original, '$..author').map(x => `www.domain.com/user/?name=${x}`)]
+    };
+
+    let result;
+    const templateClone = traverse(template).clone();
+
+    beforeEach(() => {
+        result = transform(templateClone)(original);
+    });
+
+    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
+    const template = {
+        name: '{{title}}',
+        reviews: {
+            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
+                praise: '{+{["author","comment"]}}',
+                stars: '{{viewAs}}'
+            }, {keyAfter: 'literal value after'}
+            ],
+            low: ['{>* {productReview.oneStar}}',
+                {
+                    criticism: '{{[(@.length - 1)].comment}}'
+                },
+                {count: '{{length}}'}
+            ],
+            disclaimer: 'Ad: {{comment}}'
+        },
+        reviewsSummary: [
+            '{>>>{productReview}}',
+            '{+{$..score}}',
+            {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
+        ], // render next n nodes with leading rendered item as scoped-document
+        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable template, render with next node
+        twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
+        images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'] // zip-align
+    };
+
+    const expectedResult = {
+        "name": "Bicycle 123",
+        "reviews": {
+            "high": [1, 2, "prelude", {"keyBefore": "literal value before"}, ["a", "b", "c"], 2, {
+                "praise": ["user1@domain1.com", "Excellent! Can't recommend it highly enough! Buy it!"],
+                "stars": "*****"
+            }, {"keyAfter": "literal value after"}],
+            "low": [{"criticism": "Terrible product! Do no buy this."}, {"count": 1}],
+            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
+        },
+        "reviewsSummary": [[5, 5, 1], {"summary": {"fiveStar": 2, "oneStar": 1}}],
+        "views": ["[front](2)", "[rear](2)", "[side](2)"],
+        "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
+        "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"]
     };
 
     let result;

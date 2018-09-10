@@ -243,7 +243,7 @@ const inception = options => (ast, enumerable, {meta = 5}={}) => {
 
 const inceptionPreprocessor = ast => {
     const [op, repeat, ...rest] = ast.operators.inception;
-    const $depth = repeat !== op ? (repeat ? parseInt([repeat, ...rest].join(''), 10) : Number.POSITIVE_INFINITY) : rest.length + 1;
+    const $depth = repeat !== op ? repeat === '*' ? Number.POSITIVE_INFINITY : (repeat ? parseInt([repeat, ...rest].join(''), 10) : Number.POSITIVE_INFINITY) : rest.length + 1;
     return {...ast, $inception: op, $depth};
 };
 
