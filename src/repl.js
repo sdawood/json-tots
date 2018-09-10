@@ -70,7 +70,8 @@ function main() {
     });
 
     const template = {
-        name: '{{title}}',
+        timestamp: '{!asDate{updatedAt}}',
+        name: '{#{title}}',
         reviews: {
             high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
                 praise: '{+{["author","comment"]}}',
@@ -89,7 +90,8 @@ function main() {
         // profiles: ['{>> | ** | + {..author}}', 'www.domain.com/user/?name={{$}}']
     };
 
-    const result = transform(template)(original);
+    const tags = {};
+    const result = transform(template, {tags})(original);
 
     return result;
 }

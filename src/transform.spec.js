@@ -197,8 +197,8 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
 describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers [+] with arguments + constrains [!?] with arguments', () => {
     const template = {
         name: '{{title}} [{{description}}] http://items/{{title}}',
-        // updatedAt: '{!asDate{updatedAt}}',
-        // inStockCount: '{!asInt{inStockCount}}',
+        // updatedAt: '{!asDate{updatedAt}}', // support removed from syntax
+        // inStockCount: '{!asInt{inStockCount}}', // support removed from syntax
         reviews: {
             eula: 'read and agree and let us get on with it',
             high: '{{productReview.fiveStar[0].comment}}',
@@ -581,6 +581,40 @@ describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
         expect(result).toEqual(expectedResult);
     });
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+describe('deref-jsonpath:: meta-0/1/2/3 tagging and casting using tagHandlers`', () => {
+    const template = {
+        a: {
+            b: {
+                c: '{#{title}}', // select this node's path, update value into tags under $.a.b.c
+                d: '{#id{id}}'
+            }
+        }
+    };
+
+    const expectedResult =  {"a": {"b": {"c": "Bicycle 123", "d": 123}}};
+
+    let result;
+    const templateClone = traverse(template).clone();
+    let tags = {};
+
+    beforeEach(() => {
+        result = transform(templateClone, {tags})(original);
+    });
+
+    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('sets the tagged values into tags either by label or path', () => {
+        expect(tags).toEqual({id: original.id, a: {b: {c: original.title}}}); //tag with no name uses the tagged node's path
+    });
+
 
     it('does not mutate the template', () => {
         expect(templateClone).toEqual(template);
