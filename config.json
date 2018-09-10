@@ -1,0 +1,14 @@
+{
+  "throws": false,
+  "nullifyMissing": true,
+  "operators": {
+    "constraints" : {
+      "?": {
+        "drop": true
+      },
+      "!": {
+        "nullable": true
+      }
+    }
+  }
+}
