@@ -121,7 +121,50 @@ function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default
     return {rendered: F.reduced(pipeline(...argList))};
 }
 
-function renderArrayNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, tagHandlers = {}, config} = {}) {
+function transduception_(enumerable, {meta, sources, tags, tagHandlers, config} = {}) {
+    // literal value, can't be used as origin document! inception ref should deref to a container ([] | {})
+    meta = 4;
+    const [inceptionNode] = enumerable;
+    const ast = enumerable.metadata();
+
+
+    /*
+    Currently enumerable.metadata() returns result from rephs(inceptionNode)[0]
+    //TODO: is it a desirable scenario to have the inception node containing multiple regex placeholders (rephs) ?
+    const refList = rephs(inceptionNode);
+    if (F.isReduced(refList)) {
+        return [F.unreduced(refList).value];
+    }
+    const derefedList = F.map(operators.applyAll({meta, sources, tags, tagHandlers, context: {mediumContext: context, node: inceptionNode}, config}), refList);
+    const derefed = derefedList.pop();
+    */
+
+    const derefed = operators.applyAll({meta, sources, tags, tagHandlers, context: {medium: ast.medium, node: inceptionNode}, config})(ast);
+    // const isForEach = derefed.operators.enumerate !== undefined;
+    // const flatten = derefed.operators.enumerate === '**' ? F.flatten : F.identity; // TODO: this is rudimentary flatten, *N should be covered, also flatten in Non-Inception context should work as expected
+
+    let reduced;
+    const op = derefed.operators.$inception;
+    // if (isForEach) {
+    //     const viewFrom = document => template => transform(template, {meta: meta, sources, tags, tagHandlers, config})(document);
+    //     const viewFromFns = F.map(viewFrom, derefed.value);
+    //
+    //     reduced = F.map(template => F.map(fn => fn(template), viewFromFns), enumerable);
+    // } else {
+    //     const lens = template => document => transform(template, {meta: ++meta, sources, tags, tagHandlers, config})(document);
+    //     const lenses = F.map(lens, enumerable);
+    //     reduced = F.pipes(...lenses)(derefed.value);
+    // }
+
+    return [op(ast, enumerable)];
+}
+
+function transduception(enumerable, options) {
+    const ast = enumerable.metadata();
+    return operators.inception(options)(ast, enumerable);
+}
+
+function renderArrayNode(contextRef, options) {
     const NONE = {};
     const isString = x => F.isString(x) ? x : F.reduced(NONE);
     const hasReph0 = x => {
@@ -135,11 +178,15 @@ function renderArrayNode(contextRef, {meta = 0, sources = {'default': {}}, tags 
     const stickyWhen = (x, _, ctx) => { ctx.n = x.$depth ? x.$depth : ctx.n; return x.$depth !== undefined};
 
     const partitionedGen = F.partitionBy(F.sticky(1, {when: stickyWhen, recharge: false})(partitionFn), contextRef.node);
+
+    // console.log([...partitionedGen].map(it => ({metadata: it.metadata(), data: JSON.stringify([...it])})));
+
+    const {transform} = require('../transform'); // lazy require to break cyclic dependency
     const lols = F.map(
-        iter => iter.metadata().$depth ? transduception(iter, {meta, sources, tags, tagHandlers, config}) : iter,
+        iter => iter.metadata().$depth ? transduception(iter, options) : F.map(item => transform(item, options)(options.sources.origin), iter),
         partitionedGen
     );
-    return {rendered: F.flatten(lols), asts: {}}
+    return {rendered: F.flatten(lols), asts: {}};
 }
 
 module.exports = {

@@ -109,7 +109,7 @@ const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), 
 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
-        '*': ast => ({...ast, value: [...F.iterator(ast.value)]}),
+        '*': ast => ({...ast, value: [...F.iterator(ast.value)]}), //@TODO define or remove, works better in the closing braces }*} as flatten or n-flatten
         '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
@@ -185,34 +185,60 @@ const applyAll = ({meta, sources, tags, tagHandlers, functions, context, config}
  * @param ast
  * @returns {{$inception, $depth: *}}
  */
-const inception = ({meta, sources, tags, tagHandlers, context, config}) => (ast, enumerable, {meta = 5}) => {
+const inception = options => (ast, enumerable, {meta = 5}={}) => {
     const ops = {
-        '.': (ast, enumerable, {meta, sources, tags, tagHandlers, context, config}) => {
-            const lens = template => document => transform(template, {meta: ++meta, sources, tags, tagHandlers, config})(document);
+        /**
+         * Renders node n in current scope, render n+1 using n as scoped-document, effectively recurring into smaller scopes
+         * @param ast
+         * @param enumerable
+         * @param options
+         */
+        '.': (ast, enumerable, options) => {
+            const {transform} = require('../transform'); // lazy require to break cyclic dependency
+            const lens = template => document => transform(template, options)(document);
             const lenses = F.map(lens, enumerable);
             return {...ast, value: F.pipes(...lenses)(ast.value)};
         },
-        '>': (ast, enumerable, {meta, sources, tags, tagHandlers, context, config}) => {
-            const viewFrom = document => template => transform(template, {meta, sources, tags, tagHandlers, config})(document);
-            const viewFromFns = F.map(viewFrom, ast.value);
-            return {...ast, value: F.map(template => F.map(fn => fn(template), viewFromFns), enumerable)};
+        /**
+         * Renders the leader node, use the rendered value as a scoped-document to render the rest of the enumerable as templates
+         * @param ast
+         * @param enumerable
+         * @param options
+         */
+        '>': (ast, enumerable, options) => {
+            const [inceptionNode] = enumerable;
+            const {transform} = require('../transform'); // lazy require to break cyclic dependency
+            const scopedDocument = transform(inceptionNode, options)(options.sources.origin);
+            return F.map(item => transform(item, options)(scopedDocument), enumerable);
         },
-        '%': (ast, enumerable, {meta, sources, tags, tagHandlers, context, config}) => {throw new Error('Not Implemented Yet: [inception(%)]');}
+        /**
+         * Renders the leader node, which yields an array of documents, zip/render the array of templates aligning document(n) with template(n)
+         * @param ast
+         * @param enumerable
+         * @param options
+         */
+        '%': (ast, enumerable, options) => {
+            const [inceptionNode] = enumerable;
+            const {transform} = require('../transform'); // lazy require to break cyclic dependency
+            const scopedDocument = transform(inceptionNode, options)(options.sources.origin);
+            if (!F.isArray(scopedDocument)) throw new Error('Inception Operator [%] should be used for template nodes yielding an array');
+            const rest = [...enumerable];
+            if (rest.length === 1) {
+                // no zip align, apply the rest-template for-each value in document
+                return F.map(documentItem => transform(rest[0])(documentItem), scopedDocument);
+            } else {
+                // zip-align
+                const pairsIter = F.zip(rest, scopedDocument);
+                return F.map(([template, document]) => transform(template)(document), pairsIter);
+            }
+        }
     };
 
-    let {$inception, $depth} = ast;
-    let opFn;
-    if ($inception !== undefined) {
-        $depth = $depth !== undefined ? $depth : 0;
-        opFn = ops[$inception];
-    } else {
-        const [op, repeat, ...rest] = ast.operators.inception;
-        $depth = repeat !== op ? (repeat ? parseInt([repeat, ...rest].join(''), 10) : Number.POSITIVE_INFINITY) : rest.length + 1; // .|>|% consumes the rest of the array, i.e. partitionBy(sticky(POSITIVE_INFINITY))
-        opFn = ops[op];
-    }
+    const {$inception, $depth} = ast;
+    const opFn = ops[$inception];
 
-    const result = opFn(ast, enumerable);
-    return {...result, $depth};
+    const result = opFn(ast, enumerable, options);
+    return result; //enumerable
 };
 
 const inceptionPreprocessor = ast => {
@@ -221,8 +247,6 @@ const inceptionPreprocessor = ast => {
     return {...ast, $inception: op, $depth};
 };
 
-const inceptionOperator = ({meta, sources, tags, tagHandlers, context, config}) => F.composes(inception({meta, sources, tags, tagHandlers, context, config}), bins.has('$.operators.inception'));
-
 module.exports = {
     deref,
     query,
@@ -230,7 +254,7 @@ module.exports = {
     symbol: symbolOperator,
     enumerate: enumerateOperator,
     inceptionPreprocessor,
-    inception: inceptionOperator,
+    inception,
     pipe: pipeOperator,
     applyAll,
     sortBy,

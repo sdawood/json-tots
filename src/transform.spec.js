@@ -115,7 +115,7 @@ describe('transform/meta-0 (jsonpath deref and string template interpolation)', 
     };
 
     let result;
-    let templateClone = traverse(template).clone();
+    const templateClone = traverse(template).clone();
     const documentClone = traverse(original).clone();
 
     beforeEach(() => {
@@ -174,7 +174,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     };
 
     let result;
-    let templateClone = traverse(template).clone();
+    const templateClone = traverse(template).clone();
     const documentClone = traverse(original).clone();
 
     beforeEach(() => {
@@ -266,7 +266,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     };
 
     let result;
-    let templateClone = traverse(template).clone();
+    const templateClone = traverse(template).clone();
     const documentClone = traverse(original).clone();
 
     beforeEach(() => {
@@ -393,7 +393,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     ;
 
     let result;
-    let templateClone = traverse(template).clone();
+    const templateClone = traverse(template).clone();
     const documentClone = traverse(original).clone();
 
     beforeEach(() => {
@@ -415,5 +415,58 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
 
     it('does not mutate the source', () => {
         expect(documentClone).toEqual(original);
+    });
+});
+
+describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
+    const template = {
+        name: '{{title}}',
+        reviews: {
+            high: [1, 2, 'prelude', ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', {keyBefore: 'literal value before'},
+                '{.. {productReview.fiveStar}}',
+                {
+                    praise: '{+{["comment","author"]}}',
+                    stars: '{{viewAs}}'
+                },
+                {keyAfter: 'literal value after'},
+                '{{description}}'
+            ],
+            low: ['{.. {productReview.oneStar}}', {
+                criticism: '{{[(@.length - 1)].comment}}'
+            }],
+            disclaimer: 'Ad: {{comment}}'
+        },
+        reviewsSummary: ['{..|**{productReview}}', '{{$}}'], // [keys]
+        views: ['{.. | ** {pictures}}', '[{{view}}]({{images.length}})'],
+        profiles: ['{.. | ** | + {..author}}', 'www.domain.com/user/?name={{$}}']
+    };
+
+    const expectedResult = {
+        name: original.title,
+        reviews: {
+            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], original.productReview.fiveStar.length,
+                original.productReview.fiveStar.map(x => ({praise: [x.comment, x.author], stars: x.viewAs})),
+                {keyAfter: 'literal value after'}],
+            low: [{criticism: original.productReview.oneStar[original.productReview.oneStar.length - 1].comment}],
+            disclaimer: `Ad: ${original.comment}`
+        },
+        reviewsSummary: F.map(([k, v]) => k, F.iterator(original.productReview, {indexed: true, kv: true})),
+        views: [original.pictures.map(x => `[${x.view}](${x.images.length})`)],
+        profiles: [jp.query(original, '$..author').map(x => `www.domain.com/user/?name=${x}`)]
+    };
+
+    let result;
+    const templateClone = traverse(template).clone();
+
+    beforeEach(() => {
+        result = transform(templateClone)(original);
+    });
+
+    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
     });
 });

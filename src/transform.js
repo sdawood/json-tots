@@ -20,15 +20,18 @@ const transform = (template, {
     tagHandlers = {...bins.tagHandlers, ...tagHandlers};
     functions = {...bins, ...functions};
 
+    const options = {
+        meta,
+        sources: {...sources, origin: document},
+        tags,
+        tagHandlers,
+        functions,
+        args,
+        config
+    };
+
     if (F.isString(template)) {
-        ({rendered: result} = renderStringNode({node, template, path: ['$']}, {
-            meta,
-            sources: {...sources, origin: document},
-            tags,
-            tagHandlers,
-            functions,
-            config
-        }));
+        ({rendered: result} = renderStringNode({node: template, path: ['$']}, options));
     } else {
         result = traverse(template).map(function (node) {
             debug('traverse :: ', counter++, this.path);
@@ -41,36 +44,12 @@ const transform = (template, {
                 rendered = node(document);
             } else if (F.isString(node)) {
                 if (node.startsWith('@')) {
-                    ({rendered} = renderFunctionExpressionNode(contextRef, {
-                        meta,
-                        sources: {...sources, origin: document},
-                        tags,
-                        tagHandlers,
-                        functions,
-                        args,
-                        config
-                    }));
+                    ({rendered} = renderFunctionExpressionNode(contextRef, options));
                 } else {
-                    ({rendered, asts} = renderStringNode(contextRef, {
-                        meta,
-                        sources: {...sources, origin: document},
-                        tags,
-                        tagHandlers,
-                        functions,
-                        args,
-                        config
-                    }));
+                    ({rendered, asts} = renderStringNode(contextRef, options));
                 }
             } else if (F.isArray(node)) {
-                ({rendered, asts} = renderArrayNode(contextRef, {
-                    meta,
-                    sources: {...sources, origin: document},
-                    tags,
-                    tagHandlers,
-                    functions,
-                    args,
-                    config
-                }));
+                ({rendered, asts} = renderArrayNode(contextRef, options));
             } else {
                 rendered = node;
             }
