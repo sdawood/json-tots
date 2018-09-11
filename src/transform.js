@@ -1,18 +1,13 @@
+/* eslint-disable array-callback-return */
+
 const traverse = require('traverse');
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
-const sx = require('./core/strings');
-const operators = require('./core/operators');
 const defaultConfig = () => require('../config.json');
 const bins = require('./core/builtins');
-const logger = require('./util/logger');
-const {renderString, renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
+const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
 
-const transform = (template, {
-                       meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig()
-                   } = {},
-                   {builtins = bins} = {}) => document => {
-    let counter = 1;
+const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig()} = {}, {builtins = bins} = {}) => document => {
     let result;
 
     functions = {...bins, ...functions};

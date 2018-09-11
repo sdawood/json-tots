@@ -1,6 +1,4 @@
-'use strict';
-
-const _ = require('lodash');
+const F = require('functional-pipelines');
 
 // JSON.stringify return empty object for Error otherwise
 if (!('toJSON' in Error.prototype)) {
@@ -25,7 +23,7 @@ function log(...params) {
 
 function peek(...params) {
     log(...params);
-    return params.length === 1 ? params[0] : params
+    return params.length === 1 ? params[0] : params;
 }
 
 function logLine(...params) {
@@ -41,10 +39,10 @@ function serialize(indent, ...params) {
     return params.map(stringify(indent));
 }
 
-const stringify = indent => value => _.isString(value) ? value : JSON.stringify(value, null, indent);
+const stringify = indent => value => F.isString(value) ? value : JSON.stringify(value, null, indent);
 
 const repeat = str => count => {
-    function* generate() {
+    function * generate() {
         while (count) {
             yield str;
             count--;

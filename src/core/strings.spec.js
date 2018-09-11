@@ -234,10 +234,10 @@ describe('tokenize', () => {
             [' +100 ', {$5: '+100'}],
             [' ? ', {"$4": "?"}],
             [' ?=default', {"$4": "?=default"}],
-            [' ?=default:10 | +',  {"$4": "?=default:10 ", "$5": "+"}],
+            [' ?=default:10 | +', {"$4": "?=default:10 ", "$5": "+"}],
             [' ?=default:_xyz:1xyz | +10 ', {"$4": "?=default:_xyz:1xyz ", "$5": "+10"}],
             [' ?=default:a-b-c:a b c | +10 ', {"$4": "?=default:a-b-c:a b c ", "$5": "+10"}], // TODO: spaces in arguments should be discouraged outside "", Regex limitation of not being a true lexer
-            [' ?=default:"hello":"world of pain" | +10 ',  {"$4": "?=default:\"hello\":\"world of pain\"", "$5": "+10"}],
+            [' ?=default:"hello":"world of pain" | +10 ', {"$4": "?=default:\"hello\":\"world of pain\"", "$5": "+10"}],
             [' ?=default:"hello":"world - of - pain" | +10 ', {"$4": "?=default:\"hello\":\"world - of - pain\"", "$5": "+10"}],
             [' !', {"$4": "!"}],
             [' !=altSource', {"$4": "!=altSource"}],

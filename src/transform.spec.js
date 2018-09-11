@@ -329,68 +329,65 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     };
 
     const expectedResult = {
-            name: `${original.title.toUpperCase()} [${original.description}] http://items/${original.title}`,
-            // updatedAt: new Date(original.updatedAt),
-            // inStockCount: parseInt(original.inStockCount, 10),
-            reviews:
-                {
-                    eula: 'read and agree and let us get on with it',
-                    high:
-                    original.productReview.fiveStar[0].comment,
-                    low:
-                    original.productReview.oneStar[0].comment,
-                    disclaimer:
-                        `Ad: ${original.comment}`
-                }
-            ,
-            expensive: true,
-            safety: "Always wear ...",
-            topRaters:
-                'user1 - user2 - user3',
-            topTaggers:
-                "memberUser4 - memberUser5 - memberUser6",
-            scores:
-                [5, 5],
-            oneScore:
-                1,
-            users:
-                ["anonymousUser1", "anonymousUser2"],
-            top5users:
-                ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
-            optional1:
-                "@default::default-value", // lookup from sources['default']
-            optional2:
-                "OPTIONAL DEFAULT VALUE 2", // use default value provided
-            optional2Quoted:
-                '"OPTIONAL DEFAULT VALUE 2"', // use default value provided
-            optional3:
-                "optional-default-value-3", // use default value provided
-            optionalInContext1:
-                'Value for not.there = ',
-            optionalInContext2:
-                'Value for not.there = ""',
-            optionalInContext3:
-                'Value for not.there = default value',
-            optionalInContext3Quoted:
-                'Value for not.there = "default value in quotes"',
-            required:
-                null, // should be set to null
-            required1:
-                null, // should be set to null
-            required2:
-                '@alt-source::alt-value', // lookup value in alt-source, else null
-            required3:
-                null, // lookup value in alt-source, else null
-            required4:
-                'ALT_VALUE_DEFAULT', // lookup value in alt-source, else default
-            required5:
-                null, // should be set to null
-            required6:
-                null, // should be set to null
-            required7:
-                'ALT_VALUE_DEFAULT' // should be set to default
-        }
-    ;
+        name: `${original.title.toUpperCase()} [${original.description}] http://items/${original.title}`,
+        // updatedAt: new Date(original.updatedAt),
+        // inStockCount: parseInt(original.inStockCount, 10),
+        reviews: {
+            eula: 'read and agree and let us get on with it',
+            high:
+            original.productReview.fiveStar[0].comment,
+            low:
+            original.productReview.oneStar[0].comment,
+            disclaimer:
+                `Ad: ${original.comment}`
+        },
+        expensive: true,
+        safety: "Always wear ...",
+        topRaters:
+            'user1 - user2 - user3',
+        topTaggers:
+            "memberUser4 - memberUser5 - memberUser6",
+        scores:
+            [5, 5],
+        oneScore:
+            1,
+        users:
+            ["anonymousUser1", "anonymousUser2"],
+        top5users:
+            ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
+        optional1:
+            "@default::default-value", // lookup from sources['default']
+        optional2:
+            "OPTIONAL DEFAULT VALUE 2", // use default value provided
+        optional2Quoted:
+            '"OPTIONAL DEFAULT VALUE 2"', // use default value provided
+        optional3:
+            "optional-default-value-3", // use default value provided
+        optionalInContext1:
+            'Value for not.there = ',
+        optionalInContext2:
+            'Value for not.there = ""',
+        optionalInContext3:
+            'Value for not.there = default value',
+        optionalInContext3Quoted:
+            'Value for not.there = "default value in quotes"',
+        required:
+            null, // should be set to null
+        required1:
+            null, // should be set to null
+        required2:
+            '@alt-source::alt-value', // lookup value in alt-source, else null
+        required3:
+            null, // lookup value in alt-source, else null
+        required4:
+            'ALT_VALUE_DEFAULT', // lookup value in alt-source, else default
+        required5:
+            null, // should be set to null
+        required6:
+            null, // should be set to null
+        required7:
+            'ALT_VALUE_DEFAULT' // should be set to default
+    };
 
     let result;
     const templateClone = traverse(template).clone();
@@ -601,7 +598,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 tagging with or without label', () => {
 
     let result;
     const templateClone = traverse(template).clone();
-    let tags = {};
+    const tags = {};
 
     beforeEach(() => {
         result = transform(templateClone, {tags})(original);
@@ -659,7 +656,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 @function expression node, with pipes an
 
     let result;
     const templateClone = traverse(template).clone();
-    let tags = {};
+    const tags = {};
 
     beforeEach(() => {
         result = transform(templateClone, {tags, functions: {now, since, stock, uuid}, args})(original);

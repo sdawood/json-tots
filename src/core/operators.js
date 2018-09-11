@@ -1,14 +1,16 @@
-// const curry = require('curry');
-const jp = require('jsonpath')
-const F = require('functional-pipelines')
+/* eslint-disable no-param-reassign */
+/* eslint-disable curly */
+/* eslint-disable no-magic-numbers */
+/* eslint-disable no-implicit-coercion */
+/* eslint-disable no-useless-escape */
+const jp = require('jsonpath');
+const F = require('functional-pipelines');
 const bins = require('./builtins');
 const sx = require('./strings');
 
-const sortBy = (sortBy, {mapping = v => v, asc = true} = {}) => {
-    return (a, b) => {
-        if (!asc) [a, b] = [b, a];
-        return +(mapping(a[sortBy]) > mapping(b[sortBy])) || +(mapping(a[sortBy]) === mapping(b[sortBy])) - 1;
-    };
+const sortBy = (keyName, {mapping = v => v, asc = true} = {}) => (a, b) => {
+    if (!asc) [a, b] = [b, a];
+    return +(mapping(a[keyName]) > mapping(b[keyName])) || +(mapping(a[keyName]) === mapping(b[keyName])) - 1;
 };
 
 const regex = {
@@ -18,6 +20,7 @@ const regex = {
     PIPE: /\s*\|\s*/
 };
 
+// eslint-disable-next-line no-confusing-arrow
 const jpify = path => path.startsWith('$') ? path : regex.memberOrDescendant.test(path) ? `$${path}` : `$.${path}`;
 
 const deref = sources => (ast, {meta = 1, source = 'origin'} = {}) => {
@@ -39,7 +42,7 @@ const query = (ast, {meta = 2} = {}) => {
 
     if (jp.value(ast, '$.operators.query')) {
         const regex = /\+(\d*)/;
-        let {take} = sx.tokenize(regex, ast.operators.query, {tokenNames: ['take']});
+        const {take} = sx.tokenize(regex, ast.operators.query, {tokenNames: ['take']});
         queryOp = bins.take(take);
     }
     // return F.withOneSlot(F.take)(take, F.__);
@@ -77,6 +80,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
         }
     };
 
+    // eslint-disable-next-line prefer-const
     let [op, eq, ...app] = ast.operators.constraints;
     app = (eq && eq !== '=') ? [eq, ...app] : app; // if first char is not = put it back with the `application` string
     const args = eq ? F.pipes(bins.split(':'), bins.take(2), lst => F.map(bins.trim, lst))(app.join('')) : [];
@@ -130,8 +134,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     * example: pipes: { '$1': 'toInt', '$2': 'isEven', '$3': '**', @meta': 3 }
     */
     const pipes = ast.pipes;
-    const fnTuples = [...
-        F.filter(
+    const fnTuples = [...F.filter(
             pair => pair[0].startsWith('$'),
             F.iterator(pipes, {indexed: true, kv: true})
         )
@@ -146,9 +149,10 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     const fnPipeline = F.map(([_, fnExpr]) => {
         const [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
 
-        if (!fnName in functions) {
-            throw new Error(`could not resolve function name [${fnName}]`) // @TODO: Alternatives to throwing inside a mapping!!!!
+        if (!(fnName in functions)) {
+            throw new Error(`could not resolve function name [${fnName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
         }
+
         /*
         * A function accepting an argument should return a function of arity one that receives the value rendered
         * example: take(n)(data), parseInt(base)(data), etc ...
@@ -159,7 +163,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
          * example: equals:100:__
          *
          */
-        let phIndex = args.indexOf('__');
+        const phIndex = args.indexOf('__');
         let fn = {...functions, '*': flatten, '**': doubleFlatten}[fnName];
 
         if (phIndex > 0) {
@@ -206,6 +210,7 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
             const lenses = F.map(lens, enumerable);
             return {...ast, value: F.pipes(...lenses)(ast.value)};
         },
+
         /**
          * Renders the leader node, use the rendered value as a scoped-document to render the rest of the enumerable as templates
          * @param ast
@@ -218,6 +223,7 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
             const scopedDocument = transform(inceptionNode, options)(options.sources.origin);
             return F.map(item => transform(item, options)(scopedDocument), enumerable);
         },
+
         /**
          * Renders the leader node, which yields an array of documents, zip/render the array of templates aligning document(n) with template(n)
          * @param ast

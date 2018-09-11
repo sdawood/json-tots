@@ -22,7 +22,7 @@ function escapeStringForRegex(str) {
 
 function _tokenize(regex, str, tokenNames = [], $n = true) {
     regex = regex instanceof RegExp ? regex : new RegExp(regex);
-    let result = {};
+    const result = {};
     let matches;
     while ((matches = regex.exec(str)) !== null) {
         const match = matches.shift();
@@ -42,7 +42,7 @@ function _tokenize(regex, str, tokenNames = [], $n = true) {
  * @param keys
  * @returns {function(...[*])}
  */
-function* tokenGenerator(regex, str, {sequence = false} = {}) {
+function * tokenGenerator(regex, str, {sequence = false} = {}) {
     regex = new RegExp(regex); // normalize string and regex args, also refresh exhausted regex
     const multi = regex.flags.includes('g');
     let matches = regex.exec(str);
@@ -58,8 +58,8 @@ function* tokenGenerator(regex, str, {sequence = false} = {}) {
         } else {
             yield matches;
         }
-
-    } while (multi && (matches = regex.exec(str)) !== null && (matches.index !== lastIndex)) // avoid infinite loop if the regex (by design) matches empty string, exec would keep on returning the same match over and over
+        // eslint-disable-next-line no-unmodified-loop-condition
+    } while (multi && (matches = regex.exec(str)) !== null && (matches.index !== lastIndex)); // avoid infinite loop if the regex (by design) matches empty string, exec would keep on returning the same match over and over
 }
 
 /**
@@ -77,7 +77,7 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         // interpolation, find all placeholders with the intention of later replacement, a placeholder might repeat, and there is no notion of $1 $2 as specific capture groups
         const tokenIter = F.iterator(tokenGenerator(regex, str, {sequence}), {indexed: true});
         return F.reduce((acc, [{match, token, cgi}, index]) => {
-            if (!cgindex && token == null) return acc;
+            if (!cgindex && token === null) return acc;
             cgi = cgi0 ? cgi - 1 : cgi;
             // since index shift, lookup of aliases is not straight forward unless matched pattern is known upfront
 
@@ -88,10 +88,10 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
             const groupByCgi = groupByMatch && cgindex;
 
             // effectively performing a double group by (match) (cgindex)
-            if(acc[key]) {
+            if (acc[key]) {
                 if (groupByCgi) {
                     if (acc[key][cgi]) {
-                        acc[key][cgi] = [...acc[key][cgi], token]
+                        acc[key][cgi] = [...acc[key][cgi], token];
                     } else {
                         acc[key][cgi] = [token];
                     }
@@ -102,14 +102,13 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
                 } else {
                     throw new Error('WARNING: overwriting previous match');
                 }
-            } else {
-                if (groupByCgi) {
-                    acc[key] = []; acc[key][cgi] = [token];
-                } else if (groupByMatch) {
-                    acc[key] = [token]
-                } else /*if ($n)*/ {
-                    acc[key] = token;
-                }
+            } else if (groupByCgi) {
+                acc[key] = [];
+                acc[key][cgi] = [token];
+            } else if (groupByMatch) {
+                acc[key] = [token];
+            } else /*if ($n)*/ {
+                acc[key] = token;
             }
             return acc;
         }, () => ({}), tokenIter);
@@ -127,7 +126,7 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         const tokenIter = F.iterator(tokenGenerator(regex, str));
         return F.reduce((acc, matches) => {
             for (const [index, token] of matches.entries()) {
-                if (token == null) continue;
+                if (token === null) continue;
                 const key = tokenNames[index] || `$${index + 1}`;
                 // acc[key] = token;
                 acc[key] = acc[key] ? $n ? token : [...acc[key], token] : $n ? token : [token];
@@ -150,7 +149,7 @@ function lazyTemplateTag(strings, ...keys) {
     };
 }
 
-function templatePlaceholders(template, {placeholder: { open = '${', close = '}'} = {}} = {}) {
+function templatePlaceholders(template, {placeholder: {open = '${', close = '}'} = {}} = {}) {
     // const regex = /\${['"]?(.*?)['"]?}/g;
     const open_ = escapeStringForRegex(open);
     const _close = escapeStringForRegex(close);

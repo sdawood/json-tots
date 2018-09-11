@@ -42,7 +42,7 @@ module.exports = {
         "no-console": "warn",
         "no-else-return" : "off",
         "no-extra-parens": ["error", "functions"],
-        "no-inline-comments" : "warn", // Valid use cases exist, e.g. <-- this
+        "no-inline-comments" : "off", // Valid use cases exist, e.g. <-- this
         "no-magic-numbers": "warn",
         "no-process-env" : "off",
         "no-prototype-builtins" : "off",
@@ -75,16 +75,18 @@ module.exports = {
         "valid-jsdoc": "warn", // Not currently used in Siren
         "no-empty-function": "warn", // Valid use cases exist
         "no-invalid-this": "warn", // Under evaluation
+        "consistent-this": "warn",
         "capitalized-comments": "off",
         "comma-dangle": "warn", // Was recently supported in arrays and object literals to minimize merge-lines
         "prefer-destructuring": "warn",
         "no-plusplus": "off",
         "callback-return": "warn",
         "spaced-comment": "warn",
+        "lines-around-comment": "warn",
         "no-await-in-loop": "warn",
         "no-param-reassign": "warn",
         "no-negated-condition": "off",
-        "no-nested-ternary": "warn",
+        "no-nested-ternary": "off",
         "no-confusing-arrow": ["warn", {"allowParens": true}],
         "no-continue": "off",
         "no-return-await": "off",
@@ -94,4 +96,4 @@ module.exports = {
         "no-implicit-coercion": "warn",
         "wrap-regex" : "warn"
     },
-}
+};
