@@ -9,7 +9,19 @@ Coming soon!
 **Try it out `online`** [here](https://npm.runkit.com/json-tots)
 
 ```js
+    const tots = require('json-tots');
 
+    const document = {
+        a: 1,
+        b: [10, 20, 30],
+        c: {
+            d: 100
+        }
+    };
+
+    const template = {
+
+    };
 ```
 
 See the options available below:

@@ -135,9 +135,9 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     */
     const pipes = ast.pipes;
     const fnTuples = [...F.filter(
-            pair => pair[0].startsWith('$'),
-            F.iterator(pipes, {indexed: true, kv: true})
-        )
+        pair => pair[0].startsWith('$'),
+        F.iterator(pipes, {indexed: true, kv: true})
+    )
     ]
     .sort(sortBy(0));
 
@@ -206,10 +206,12 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
          * @param options
          */
         '.': (ast, enumerable, options) => {
+            const [inceptionNode] = enumerable;
             const {transform} = require('../transform'); // lazy require to break cyclic dependency
-            const lens = template => document => transform(template, options)(document);
-            const lenses = F.map(lens, enumerable);
-            return {...ast, value: F.pipes(...lenses)(ast.value)};
+            const scopedDocument = transform(inceptionNode, options)(options.sources.origin);
+            return [F.reduce((rendered, nestedTemplate) => {
+                return transform(nestedTemplate, options)(rendered);
+            }, () => scopedDocument, enumerable)];
         },
 
         /**
