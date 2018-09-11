@@ -77,13 +77,20 @@ function renderString(node, derefedList) {
     return rendered;
 }
 
-function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, tagHandlers = {}, functions = {}, args = {}, config} = {}) {
+function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}) {
     const refList = rephs(contextRef.node);
     if (F.isReduced(refList)) {
         return {rendered: F.unreduced(refList).value};
     }
 
-    const derefedList = F.map(operators.applyAll({meta, sources, tags, tagHandlers, functions, context: contextRef, config}), refList);
+    const derefedList = F.map(operators.applyAll({
+        meta,
+        sources,
+        tags,
+        functions,
+        context: contextRef,
+        config
+    }), refList);
     const rendered = renderString(contextRef.node, derefedList);
     return {rendered, asts: derefedList};
 }
@@ -92,72 +99,54 @@ const normalizeArgs = ({functions, args}) => ([fnPath, fnKey, fnName], data) => 
     const fnArgs = args[fnPath] || args[fnKey] || args[fnName];
     if (fnArgs === undefined) return [];
 
-    const fnArgList = colls.isArray(fnArgs) ? fnArgs : [fnArgs];
+    const fnArgList = F.isArray(fnArgs) ? fnArgs : [fnArgs];
 
-    const argList = colls.map(arg => {
+    const argList = F.map(arg => {
         return arg.path ? jp.value(data, arg.path) : arg.value !== undefined ? arg.value : arg;
     }, fnArgList);
 
     return argList;
 };
 
-function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, tagHandlers = {}, functions = {}, args = {}, config} = {}) {
+function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}, document) {
     const missingFunctionError = sx.lazyTemplate('Error: No such builtin function: [${node}]');
     const evaluateArgs = normalizeArgs({functions, args});
     const node = contextRef.node;
-    const [fnName, ...fnNames] = node.slice(1).split(regex.PIPE);
+    const [fnName, ...fnExprs] = node.slice(1).split(operators.regex.PIPE);
     const fn = functions[fnName] || (config.throws ? () => {
         throw new Error(missingFunctionError({node}));
-    } : colls.lazy(missingFunctionError({node})));
+    } : F.lazy(missingFunctionError({node})));
 
-    const pipeline = fnNames.length === 0 ? fn : colls.pipe(...[fn, ...colls.map(fnName => {
-        return functions[fnName] || (config.throws ? () => {
-            throw new Error(missingFunctionError({node}));
-        } : colls.lazy(missingFunctionError({node})));
-    }, fnNames)]);
+    // const pipeline = fnNames.length === 0 ? fn : F.pipe(...[fn, ...F.map(fnName => {
+    //     return functions[fnName] || (config.throws ? () => {
+    //         throw new Error(missingFunctionError({node}));
+    //     } : F.lazy(missingFunctionError({node})));
+    // }, fnNames)]);
 
-    const fnArgKeys = [`$.${that.path.join('.')}`, that.path.pop(), fnName];
-    const argList = evaluateArgs(fnArgKeys, data);
+    const fnPipeline = F.pipes(...[fn,
+        ...F.map(fnExpr => {
+            const [fnName, ...args] = fnExpr.split(operators.regex.fnArgsSeparator);
 
-    return {rendered: F.reduced(pipeline(...argList))};
-}
+            if (!fnName in functions) {
+                throw new Error(`could not resolve function name [${fnName}]`) // @TODO: Alternatives to throwing inside a mapping!!!!
+            }
 
-function transduception_(enumerable, {meta, sources, tags, tagHandlers, config} = {}) {
-    // literal value, can't be used as origin document! inception ref should deref to a container ([] | {})
-    meta = 4;
-    const [inceptionNode] = enumerable;
-    const ast = enumerable.metadata();
+            let phIndex = args.indexOf('__');
+            let fn = {...functions, '*': operators.flatten, '**': operators.doubleFlatten}[fnName];
 
+            if (phIndex > 0) {
+                args[phIndex] = F.__;
+                fn = F.oneslot(functions[fnName]);
+            }
 
-    /*
-    Currently enumerable.metadata() returns result from rephs(inceptionNode)[0]
-    //TODO: is it a desirable scenario to have the inception node containing multiple regex placeholders (rephs) ?
-    const refList = rephs(inceptionNode);
-    if (F.isReduced(refList)) {
-        return [F.unreduced(refList).value];
-    }
-    const derefedList = F.map(operators.applyAll({meta, sources, tags, tagHandlers, context: {mediumContext: context, node: inceptionNode}, config}), refList);
-    const derefed = derefedList.pop();
-    */
+            return args.length ? fn(...args) : fn;
+        }, fnExprs)
+    ]);
 
-    const derefed = operators.applyAll({meta, sources, tags, tagHandlers, context: {medium: ast.medium, node: inceptionNode}, config})(ast);
-    // const isForEach = derefed.operators.enumerate !== undefined;
-    // const flatten = derefed.operators.enumerate === '**' ? F.flatten : F.identity; // TODO: this is rudimentary flatten, *N should be covered, also flatten in Non-Inception context should work as expected
+    const fnArgKeys = [`$.${contextRef.path.join('.')}`, contextRef.path.pop(), fnName];
+    const argList = evaluateArgs(fnArgKeys, document);
 
-    let reduced;
-    const op = derefed.operators.$inception;
-    // if (isForEach) {
-    //     const viewFrom = document => template => transform(template, {meta: meta, sources, tags, tagHandlers, config})(document);
-    //     const viewFromFns = F.map(viewFrom, derefed.value);
-    //
-    //     reduced = F.map(template => F.map(fn => fn(template), viewFromFns), enumerable);
-    // } else {
-    //     const lens = template => document => transform(template, {meta: ++meta, sources, tags, tagHandlers, config})(document);
-    //     const lenses = F.map(lens, enumerable);
-    //     reduced = F.pipes(...lenses)(derefed.value);
-    // }
-
-    return [op(ast, enumerable)];
+    return {rendered: F.reduced(fnPipeline(...argList))};
 }
 
 function transduception(enumerable, options) {
@@ -175,10 +164,19 @@ function renderArrayNode(contextRef, options) {
 
     const hasInception = ast => jp.value(ast, '$.operators.inception') ? ast : F.reduced(NONE);
 
-    const partitionFn = F.composes(ast => {ast.medium = contextRef; return ast}, operators.inceptionPreprocessor, hasInception, hasReph0, isString);
-    const stickyWhen = (x, _, ctx) => { ctx.n = x.$depth ? x.$depth : ctx.n; return x.$depth !== undefined};
+    const partitionFn = F.composes(ast => {
+        ast.medium = contextRef;
+        return ast
+    }, operators.inceptionPreprocessor, hasInception, hasReph0, isString);
+    const stickyWhen = (x, _, ctx) => {
+        ctx.n = x.$depth ? x.$depth : ctx.n;
+        return x.$depth !== undefined
+    };
 
-    const partitionedGen = F.partitionBy(F.sticky(1, {when: stickyWhen, recharge: false})(partitionFn), contextRef.node);
+    const partitionedGen = F.partitionBy(F.sticky(1, {
+        when: stickyWhen,
+        recharge: false
+    })(partitionFn), contextRef.node);
 
     // console.log([...partitionedGen].map(it => ({metadata: it.metadata(), data: JSON.stringify([...it])})));
 

@@ -14,7 +14,7 @@ const original = Object.freeze({
     price: 500,
     color: ['Red', 'Black', 'White'],
     productCategory: 'Bicycle',
-    inStok: true,
+    inStock: true,
     inStockCount: '100',
     quantityOnHand: null,
     relatedItems: [341, 472, 649],
@@ -537,39 +537,39 @@ describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | 
     };
 
     const expectedResult = {
-            "allReviews": [{
-                "author": "user1@domain1.com",
-                "comment": "Excellent! Can't recommend it highly enough! Buy it!",
-                "first.name": "user1",
-                "score": 5,
-                "viewAs": "*****"
-            }, {
-                "author": "user2@domain2.com",
-                "comment": "Do yourself a favor and buy this.",
-                "first.name": "user2",
-                "score": 5,
-                "viewAs": "*****"
-            }, {
-                "author": "user3@domain3.com",
-                "comment": "Terrible product! Do no buy this.",
-                "first.name": "user3",
-                "score": 1,
-                "viewAs": "*----"
-            }],
-            "fiveStar": [{
-                "author": "user1@domain1.com",
-                "comment": "Excellent! Can't recommend it highly enough! Buy it!",
-                "first.name": "user1",
-                "score": 5,
-                "viewAs": "*****"
-            }, {
-                "author": "user2@domain2.com",
-                "comment": "Do yourself a favor and buy this.",
-                "first.name": "user2",
-                "score": 5,
-                "viewAs": "*****"
-            }]
-        };
+        "allReviews": [{
+            "author": "user1@domain1.com",
+            "comment": "Excellent! Can't recommend it highly enough! Buy it!",
+            "first.name": "user1",
+            "score": 5,
+            "viewAs": "*****"
+        }, {
+            "author": "user2@domain2.com",
+            "comment": "Do yourself a favor and buy this.",
+            "first.name": "user2",
+            "score": 5,
+            "viewAs": "*****"
+        }, {
+            "author": "user3@domain3.com",
+            "comment": "Terrible product! Do no buy this.",
+            "first.name": "user3",
+            "score": 1,
+            "viewAs": "*----"
+        }],
+        "fiveStar": [{
+            "author": "user1@domain1.com",
+            "comment": "Excellent! Can't recommend it highly enough! Buy it!",
+            "first.name": "user1",
+            "score": 5,
+            "viewAs": "*****"
+        }, {
+            "author": "user2@domain2.com",
+            "comment": "Do yourself a favor and buy this.",
+            "first.name": "user2",
+            "score": 5,
+            "viewAs": "*****"
+        }]
+    };
 
     let result;
     const templateClone = traverse(template).clone();
@@ -587,7 +587,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2/3 tagging and casting using tagHandlers`', () => {
+describe('deref-jsonpath:: meta-0/1/2/3 tagging with or without label', () => {
     const template = {
         a: {
             b: {
@@ -597,7 +597,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 tagging and casting using tagHandlers`',
         }
     };
 
-    const expectedResult =  {"a": {"b": {"c": "Bicycle 123", "d": 123}}};
+    const expectedResult = {"a": {"b": {"c": "Bicycle 123", "d": 123}}};
 
     let result;
     const templateClone = traverse(template).clone();
@@ -615,6 +615,59 @@ describe('deref-jsonpath:: meta-0/1/2/3 tagging and casting using tagHandlers`',
         expect(tags).toEqual({id: original.id, a: {b: {c: original.title}}}); //tag with no name uses the tagged node's path
     });
 
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+describe('deref-jsonpath:: meta-0/1/2/3 @function expression node, with pipes and args node', () => {
+    const helloWorld = () => 'hello world';
+
+    const template = {
+        updateAt: '@now',
+        age: '@since',
+        stockSummary: '@stock',
+        id: '@uuid | ellipsis:10',
+        injectedFunction: helloWorld
+    };
+
+    // args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
+    const args = {
+        age: [{path: '$.updatedAt'}],
+        stockSummary: [
+            {path: '$.inStock'},
+            {path: '$.inStockCount'},
+            {path: '$.quantityOnHand'},
+            {value: 100},
+            1000
+        ]
+    };
+
+    const now = () => '2018-09-11T00:20:08.411Z';
+    const since = previous => `Now: [2018-09-11T00:20:08.411Z], last update: ${previous}`;
+    const stock = (...args) => args.join('--');
+    const uuid = () => '4213ad4f-a2b3-4c02-8133-f89019eb6093'; // override for mocking/testing
+
+    const expectedResult = {
+        "age": "Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47",
+        "id": "4213ad4...",
+        "stockSummary": "true--100----100--1000",
+        "updateAt": "2018-09-11T00:20:08.411Z",
+        "injectedFunction": "hello world"
+    };
+
+    let result;
+    const templateClone = traverse(template).clone();
+    let tags = {};
+
+    beforeEach(() => {
+        result = transform(templateClone, {tags, functions: {now, since, stock, uuid}, args})(original);
+    });
+
+    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
+        expect(result).toEqual(expectedResult);
+    });
 
     it('does not mutate the template', () => {
         expect(templateClone).toEqual(template);

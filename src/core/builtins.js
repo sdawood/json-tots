@@ -1,5 +1,7 @@
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
+const uuid = require('uuid');
+
 const sx = require('./strings');
 
 const castingFunctionError = sx.lazyTemplate('Error: value: [${value}] is not a valid ${type}');
@@ -28,7 +30,6 @@ module.exports = {
     of: key => o => o[key] !== undefined ? o[key] : F.reduced(o),
     has: path => o => (jp.value(o, path) !== undefined) ? o : F.reduced(o),
     flatten: F.flatten,
-    tagHandlers: {asDate, asInt, asFloat, asBool, asArray},
     isNaN: isNaN,
     // now: () => datetimeProvider.getTimestamp(),
     // nowAsISOString: () => datetimeProvider.getDateAsISOString(),

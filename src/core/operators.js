@@ -14,7 +14,8 @@ const sortBy = (sortBy, {mapping = v => v, asc = true} = {}) => {
 const regex = {
     safeDot: /\.(?![\w\.]+")/,
     memberOrDescendant: /^[\[\.]/,
-    fnArgsSeparator: /\s*:\s*/
+    fnArgsSeparator: /\s*:\s*/,
+    PIPE: /\s*\|\s*/
 };
 
 const jpify = path => path.startsWith('$') ? path : regex.memberOrDescendant.test(path) ? `$${path}` : `$.${path}`;
@@ -45,34 +46,33 @@ const query = (ast, {meta = 2} = {}) => {
     return {...ast, '@meta': meta, value: queryOp(ast.value)};
 };
 
-const constraints = ({sources, tagHandlers, config}) => (ast, {meta = 2} = {}) => {
+/**
+ * NOTE: regex for constraints would allow for !abc or ?abc reserved for future use
+ * @param sources
+ * @param config
+ * @returns {function(*=, {meta?: *}=): {"@meta": Number.meta}}
+ */
+const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
     const ops = {
-        '?': ast => (_, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
+        '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
             ...ast,
             value: defaultValue
         } : F.compose(query, deref(sources))(ast, {meta, source: defaultSource})),
         '!': ast => (isAltLookup, altSource, ...args) => {
             let result = ast;
-            if (isAltLookup) {
-                result = !F.isEmptyValue(altSource) ? F.compose(query, deref(sources))(ast, {
-                    meta,
-                    source: altSource
-                }) : {...result, value: null};
-                const [defaultValue] = args;
-                result = result.value !== undefined ? result : (
-                    defaultValue !== undefined ? {
-                        ...result,
-                        value: defaultValue
-                    } : {
-                        ...result, value: null
-                    }
-                )
-            } else {
-                result = {
+            result = !F.isEmptyValue(altSource) ? F.compose(query, deref(sources))(ast, {
+                meta,
+                source: altSource
+            }) : {...result, value: null};
+            const [defaultValue] = args;
+            result = result.value !== undefined ? result : (
+                defaultValue !== undefined ? {
                     ...result,
-                    value: (altSource && tagHandlers[altSource]) ? tagHandlers[altSource](ast.value, ...args) : null
-                };
-            }
+                    value: defaultValue
+                } : {
+                    ...result, value: null
+                }
+            );
             return result;
         }
     };
@@ -85,9 +85,8 @@ const constraints = ({sources, tagHandlers, config}) => (ast, {meta = 2} = {}) =
     return {...result, '@meta': meta};
 };
 
-const constraintsOperator = ({sources, tagHandlers}) => F.composes(constraints({
-    sources,
-    tagHandlers
+const constraintsOperator = ({sources}) => F.composes(constraints({
+    sources
 }), bins.has('$.operators.constraints'));
 
 const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
@@ -111,7 +110,7 @@ const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), 
 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
-        '*': ast => ({...ast, value: [...F.iterator(ast.value)]}), //@TODO define or remove, works better in the closing braces }*} as flatten or n-flatten
+        '*': ast => ({...ast, value: [...F.iterator(ast.value)]}), // no-op on arrays, enumerates object values in Object.keys order
         '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
@@ -176,11 +175,11 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
 
 const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.pipes'));
 
-const applyAll = ({meta, sources, tags, tagHandlers, functions, context, config}) => F.composes(
+const applyAll = ({meta, sources, tags, functions, context, config}) => F.composes(
     pipeOperator({functions}),
     enumerateOperator,
     symbolOperator({tags, context}),
-    constraintsOperator({sources, tagHandlers, config}),
+    constraintsOperator({sources, config}),
     query,
     deref(sources)
 );
@@ -256,6 +255,7 @@ const inceptionPreprocessor = ast => {
 };
 
 module.exports = {
+    regex,
     deref,
     query,
     constraints: constraintsOperator,
@@ -266,4 +266,6 @@ module.exports = {
     pipe: pipeOperator,
     applyAll,
     sortBy,
+    flatten,
+    doubleFlatten
 };

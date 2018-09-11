@@ -2,10 +2,6 @@ const F = require('./functional-pipelines');
 const O = require('./operators');
 
 let {slice, split, of, has} = require('./builtins');
-slice = F.which(slice);
-split = F.which(split);
-of = F.which(of);
-has = F.which(has);
 
 describe('operators', () => {
     describe('reduced', () => {

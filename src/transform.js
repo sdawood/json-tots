@@ -8,23 +8,19 @@ const bins = require('./core/builtins');
 const logger = require('./util/logger');
 const {renderString, renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
 
-const debug = (...args) => logger.log(...args);
-
 const transform = (template, {
-                       meta = 0, sources = {'default': {}}, tags = {}, tagHandlers = {}, functions = {}, args = {}, config = defaultConfig()
+                       meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig()
                    } = {},
                    {builtins = bins} = {}) => document => {
     let counter = 1;
     let result;
 
-    tagHandlers = {...bins.tagHandlers, ...tagHandlers};
     functions = {...bins, ...functions};
 
     const options = {
         meta,
         sources: {...sources, origin: document},
         tags,
-        tagHandlers,
         functions,
         args,
         config
@@ -34,7 +30,6 @@ const transform = (template, {
         ({rendered: result} = renderStringNode({node: template, path: ['$']}, options));
     } else {
         result = traverse(template).map(function (node) {
-            debug('traverse :: ', counter++, this.path);
             const self = this;
             const contextRef = self;
             let rendered;
@@ -44,7 +39,7 @@ const transform = (template, {
                 rendered = node(document);
             } else if (F.isString(node)) {
                 if (node.startsWith('@')) {
-                    ({rendered} = renderFunctionExpressionNode(contextRef, options));
+                    ({rendered} = renderFunctionExpressionNode(contextRef, options, document));
                 } else {
                     ({rendered, asts} = renderStringNode(contextRef, options));
                 }
