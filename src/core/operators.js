@@ -149,7 +149,8 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     const fnPipeline = F.map(([_, fnExpr]) => {
         const [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
 
-        if (!(fnName in functions)) {
+        const enrichedFunctions = {...functions, '*': flatten, '**': doubleFlatten};
+        if (!(fnName in enrichedFunctions)) {
             throw new Error(`could not resolve function name [${fnName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
         }
 
@@ -164,7 +165,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
          *
          */
         const phIndex = args.indexOf('__');
-        let fn = {...functions, '*': flatten, '**': doubleFlatten}[fnName];
+        let fn = enrichedFunctions[fnName];
 
         if (phIndex > 0) {
             args[phIndex] = F.__;

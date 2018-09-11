@@ -1,3 +1,6 @@
+/* eslint-disable eqeqeq */
+/* eslint-disable no-eq-null */
+
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
 
@@ -77,7 +80,7 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         // interpolation, find all placeholders with the intention of later replacement, a placeholder might repeat, and there is no notion of $1 $2 as specific capture groups
         const tokenIter = F.iterator(tokenGenerator(regex, str, {sequence}), {indexed: true});
         return F.reduce((acc, [{match, token, cgi}, index]) => {
-            if (!cgindex && token === null) return acc;
+            if (!cgindex && token == null) return acc;
             cgi = cgi0 ? cgi - 1 : cgi;
             // since index shift, lookup of aliases is not straight forward unless matched pattern is known upfront
 
@@ -126,7 +129,7 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         const tokenIter = F.iterator(tokenGenerator(regex, str));
         return F.reduce((acc, matches) => {
             for (const [index, token] of matches.entries()) {
-                if (token === null) continue;
+                if (token == null) continue;
                 const key = tokenNames[index] || `$${index + 1}`;
                 // acc[key] = token;
                 acc[key] = acc[key] ? $n ? token : [...acc[key], token] : $n ? token : [token];
