@@ -24,7 +24,7 @@ const original = Object.freeze({
         personalTransportation: {author: 'memberUser3', timestamp: '2015MMDDHHmmssSSS'},
         'tag-name-with-dash': {author: 'memberUser4', timestamp: '2015MMDDHHmmssSSS'},
         'tag name with spaces': {author: 'memberUser5', timestamp: '2015MMDDHHmmssSSS'},
-        'tag.name.with.dots': {author: 'memberUser6', timestamp: '2015MMDDHHmmssSSS'},
+        'tag.name.with.dots': {author: 'memberUser6', timestamp: '2015MMDDHHmmssSSS'}
     },
     pictures: [
         {
