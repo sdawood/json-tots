@@ -3,11 +3,24 @@
 const traverse = require('traverse');
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
-const defaultConfig = () => require('../config.json');
+const defaultConfig = {
+    throws: false,
+    nullifyMissing: true,
+    operators: {
+        constraints: {
+            '?': {
+                drop: true
+            },
+            '!': {
+                nullable: true
+            }
+        }
+    }
+};
 const bins = require('./core/builtins');
 const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
 
-const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig()} = {}, {builtins = bins} = {}) => document => {
+const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     let result;
 
     functions = {...bins, ...functions};
@@ -73,6 +86,7 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
 module.exports = {
     transform,
     data: {
-        ...renderData
+        ...renderData,
+        defaultConfig
     }
 };

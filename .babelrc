@@ -5,7 +5,7 @@
         "node": 4.3,
         "browsers": ["last 10 versions", "ie >= 7"]
       },
-      "debug": true
+      "debug": false
     }]
   ],
   "plugins": ["transform-object-rest-spread",

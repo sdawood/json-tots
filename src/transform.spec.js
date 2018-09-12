@@ -398,6 +398,9 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
             sources: {
                 'default': {'not.there': '@default::default-value'},
                 altSource1: {'not.there': '@alt-source::alt-value'}
+            },
+            functions: {
+                gte: (source, target) => target >= source // gte is in bins, overriding to illustrate __ placeholder
             }
         })(documentClone);
     });

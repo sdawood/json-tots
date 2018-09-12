@@ -9,28 +9,27 @@ const sx = require('./strings');
 // eslint-disable-next-line no-template-curly-in-string
 const castingFunctionError = sx.lazyTemplate('Error: value: [${value}] is not a valid ${type}');
 
-const asDate = (value) => new Date(value);
-const asInt = (value, base) => parseInt(value, base || 10);
-const asFloat = (value, base) => parseFloat(value, base || 10);
-const asBool = value => value === 'true' ? true : value === 'false' ? false : null;
-const asArray = (value, delimiter = '') => value.split(delimiter);
-
 module.exports = {
     take: take => values => [...F.take(parseInt(take, 10) || Number.POSITIVE_INFINITY, values)],
+    skip: skip => values => [...F.skip(parseInt(skip, 10) || 0, values)],
     slice: F.slice,
     split: delimiter => str => str.split(delimiter),
-    asDate,
-    asInt,
-    asFloat,
-    asBool,
-    asArray,
+    asDate: (value) => new Date(value),
+    asInt: (value, base = 10) => parseInt(value, base),
+    asFloat: (value, base = 10) => parseFloat(value, base),
+    asBool: value => value === 'true' ? true : value === 'false' ? false : null,
+    asArray: (value, delimiter = '') => value.split(delimiter),
+    stringify: json => JSON.stringify(json, null, 2),
 
     of: key => o => o[key] !== undefined ? o[key] : F.reduced(o),
     has: path => o => (jp.value(o, path) !== undefined) ? o : F.reduced(o),
     flatten: F.flatten,
+    doubleFlatten: enumerable => F.flatten(F.map(F.flatten, enumerable)),
     isNaN,
-    // now: () => datetimeProvider.getTimestamp(),
-    // nowAsISOString: () => datetimeProvider.getDateAsISOString(),
+    now: () => new Date(),
+    nowAsISO6601: () => new Date().toISOString(),
+    nowAsDateString: () => new Date().toDateString(),
+    // nowAsFormat:
     uuid: () => uuid.v4(),
     hash: payload => md5(JSON.stringify(payload, null, 0)),
     toBool: value => ['true', 'yes', 'y'].includes(value ? value.toLowerCase() : value),
@@ -44,15 +43,24 @@ module.exports = {
     },
     toString: value => value.toString(),
     ellipsis: maxLen => str => `${str.slice(0, maxLen - 3)}...`,
-    toNull: value => ['null'].includes(value ? value.toLowerCase() : value) ? null : value,
+    toNull: value => ['null', 'nil'].includes(value ? value.toLowerCase() : value) ? null : value,
     trim: str => str.trim(),
     toLowerCase: value => value ? value.toLowerCase() : value,
     toUpperCase: value => value ? value.toUpperCase() : value,
     not: value => !value,
-    equals: (source, target) => target === source,
-    gte: (source, target) => target >= source,
-    lte: (source, target) => target <= source,
-    inList: (lst, source) => lst.includes(source),
+    equals: source => target => target === source,
+    gt: source => target => target > source,
+    gte: source => target => target >= source,
+    lt: source => target => target < source,
+    lte: source => target => target <= source,
+    inList: lst => target => JSON.parse(lst).includes(target),
     isEven: source => source % 2 === 0,
-    matches: (source, target) => (new RegExp(target)).test(source)
+    isOdd: source => source % 2 !== 0,
+    add: source => target => parseFloat(source, 10) + target,
+    sub: source => target => target - parseFloat(source, 10),
+    div: source => target => target / parseFloat(source, 10),
+    remainder: source => target => target / parseFloat(source, 10),
+    pow: source => target => target ** parseFloat(source, 10),
+    mul: source => target => parseFloat(source, 10) * target,
+    matches: source => target => (new RegExp(target)).test(source)
 };

@@ -125,9 +125,6 @@ const enumerate = (ast, {meta = 4} = {}) => {
 
 const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'));
 
-const flatten = enumerable => F.flatten(enumerable);
-const doubleFlatten = enumerable => F.flatten(F.map(F.flatten, enumerable));
-
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     // console.log('INSIDE PIPE OPERATOR')
     /*
@@ -149,7 +146,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     const fnPipeline = F.map(([_, fnExpr]) => {
         const [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
 
-        const enrichedFunctions = {...functions, '*': flatten, '**': doubleFlatten};
+        const enrichedFunctions = {...functions, '*': bins.flatten, '**': bins.doubleFlatten};
         if (!(fnName in enrichedFunctions)) {
             throw new Error(`could not resolve function name [${fnName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
         }
@@ -274,7 +271,5 @@ module.exports = {
     inception,
     pipe: pipeOperator,
     applyAll,
-    sortBy,
-    flatten,
-    doubleFlatten
+    sortBy
 };

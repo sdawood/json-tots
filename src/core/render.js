@@ -15,7 +15,7 @@ const placeholder = {
     pipes: /(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$]+|\*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$]*)*)/g // https://regex101.com/r/n2qnj7/5
 };
 
-const rejectPlaceHolder = {open: '{>>{', close: '}<<}'};
+const rejectPlaceHolder = {open: '{!!{', close: '}!!}'};
 
 /**
  * regex place holder, a.k.a reph parser

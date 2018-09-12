@@ -2,7 +2,7 @@
   "name": "json-tots",
   "version": "0.0.1",
   "description": "Template of Templates, a.k.a Template Should Eat Itself",
-  "main": "lib/index.js",
+  "main": "lib/transform.js",
   "scripts": {
     "commit": "git-cz",
     "test": "npm run eslint && jest --verbose",
