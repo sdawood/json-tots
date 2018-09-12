@@ -60,7 +60,14 @@ For advanced use-cases see below
 
 ## Introduction
 json-tots renders your template to the same JSON shape, without mutating neither the template nor the document.
-Things get interesting when you use the string-template syntax `{{}}` in standalone or within a string literal.
+Things get interesting when:
+- You use the string-template syntax `{{}}` in standalone or within a string literal.
+- Also within any array in the template, any item that is a string-template can utilize the inception operators to consume subsequent items following some interesting application of document and template items. See Inception Operators below for more information.
+- While all features are **Text** based by design to achieve declarative, versionable transformations; for practicality, if you inject a function (a runtime function reference) any where in your template object tree, it would be invoked and the whole `document` is passed as an argument, the returned value is rendered as-is to the result, e.g. returned result is NOT `JSON.stringify'd`.
+
+This allows for experimentation and extensibility, for example returning an object that has a new function reference in its attributes, then re-run `transform`. `Inception` ideas of partial-templates and multi-staged rendering are endless.
+
+
 The opening curly braces can include one or more `operator`, while the closing curly braces can include `pipes`, which is a pipeline of functions to apply to the rendered partial-result.
 For example:
 
@@ -182,9 +189,9 @@ json-tots Template String                      | Description
 **Enumeration Operators**| Examples: `'{*{a.b.c}}', '{**{a.b.c}}'`
 `*`| Enumerate values of an object
 `**`| Enumerate an object as an array of `[key, value]` pairs
-**Inception Operators**| Looping over templates, document-items or descending into nested scope
-**for-each-template**| Examples: `['{>>>{a.b.c}}', '{{name}}', '{{age}}']`
-`>>`| Template array item would first be rendered using the main `document`, rendered result would be used as a scoped documents for the `NEXT-ONE` template item in the array, i.e. when rendering this array `['{>>>{a.b.c}}', '{{name}}'']`, `$a.b.c` value is selected from the main document producing a `scoped-document`, next `ONE` template-item in the array, namely `$.name` is selected from that scoped-document.
+**Inception Operators**| Looping over templates, document-items or descending into nested scope. Triggered by some array item that is a template with '{<inception-opreator>{}}' and consumes from susequent items
+**for-each-template**| Examples: `['{>>>{a.b.c}}', '{{name}}', '{{age}}']`. Number of repetition after the first instance of the operator is sugar for `<operator>n`, where `n` is numerical value
+`>>`| Template array item would first be rendered using the main `document`, rendered result would be used as a scoped documents for the `NEXT-ONE` template item in the array, i.e. when rendering this array `['{>>{a.b.c}}', '{{name}}'']`, `$a.b.c` value is selected from the main document producing a `scoped-document`, next `ONE` template-item in the array, namely `$.name` is selected from that scoped-document.
 `>>>`| Template array item would first be rendered using the main `document`, rendered result would be used as a scoped documents for the `NEXT-TWO` template item in the array, i.e. when rendering this array `['{>>>{a.b.c}}', '{{name}}', '{{age}}']`, `$a.b.c` value is selected from the main document producing a `scoped-document`, next `TWO` template-items in the array, namely `$.name` and `$.age` are selected from that scoped-document. In general, depth is determined using the number of `>` used.
 `>n`| Template array item would first be rendered using the main `document`, rendered result would be used as a scoped documents for the `NEXT-n` template item(s) in the array
 `>*`| Template array item would first be rendered using the main `document`, rendered result would be used as a scoped documents for `ALL` subsequent template item(s) in the template array
@@ -193,7 +200,7 @@ json-tots Template String                      | Description
 `%%%`| Template array item would first be rendered using the main `document` where rendered result is an `Array`, for-each document-item in that Array the `NEXT-TWO` template items in the array are used to render the first `TWO` document-items in order, In other words, `document-items` Array and next `TWO` `template-items` are `zipped` into `[[doc1, template1], [doc2, template2]]` where every pair is used in a call to transform(template1)(document1), transform(template2)(document2). In general, depth is determined using the number of `%` used.
 `%n`| Same as above, document-items Array is `zipped` with next `n` template-items.
 `%*`| Same as above, document-items Array is `zipped` with `ALL` subsequent template-items in the template array.
-**descending-scope**| Examples: `['{...{a}}', '{{some-b-attribute}}', '{{some-c-attribute}}']` (assuming document has a valid path `a.b.c`)
+**descending-scope**| Examples: `['{...{a}}', '{{some-a-attribute-b}}', '{{some-b-attribute-c}}']` (assuming document has a valid path `a.b.c`) allowing you to write scoped and shorter `jsonpath` for deeply nested JSON documents
 `..`| Template is rendered against the main `document` and then used as a `scoped-document` for the next `ONE` template item.
 `...`| Same as above but recursively descend into nested scope for the next `TWO` template items. In general, depth is determined using the number of `.` used.
 `.*`| Same as above but recursively descend into nested scope for `ALL` subsequent template items in the template array, i.e. template-0 is rendered from main document, template-n+1 is rendered using scoped-document produced by rendering template-n. This is a convience feature that allows shorter and more focused jsonpath expressions for heavily nested JSON and simplifies using `partial-templates` for inner scopes.
@@ -391,6 +398,8 @@ const document = {
 
 ### Function Expression Example
 ```js
+    const helloWorld = () => 'hello world';
+
     const template = {
         updateAt: '@now',
         age: '@since',
@@ -412,23 +421,26 @@ const document = {
         ]
     };
 
+
+    const gte = (source, target) => target >= source; // builtin gte is higher-order function, overriding with arity-2 function to illustrate __ placeholder
     const now = () => '2018-09-11T00:20:08.411Z';
     const since = previous => `Now: [2018-09-11T00:20:08.411Z], last update: ${previous}`;
     const stock = (...args) => args.join('--');
     const uuid = () => '4213ad4f-a2b3-4c02-8133-f89019eb6093'; // override for mocking/testing
 
-    const result = transform(template, {functions: {now, since, stock, uuid}, args})(document);
+    const result = transform(template, {functions: {now, since, stock, uuid, gte}, args})(document);
 
     /** result
     {
-        "age": "Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47",
-        "id": "4213ad4...",
-        "stockSummary": "true--100----100--1000",
-        "updateAt": "2018-09-11T00:20:08.411Z",
-        "expensive": true,
-        "injectedFunction": "hello world"
-    }
+        updateAt: '2018-09-11T00:20:08.411Z',
+        age: 'Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47',
+        stockSummary: 'true--100----100--1000',
+        id: '4213ad4...',
+        expensive: true,
+        injectedFunction: 'hello world'
+    };
     **/
+
 ```
 
 For more examples please check `transform.spec.js` in the code repository.
