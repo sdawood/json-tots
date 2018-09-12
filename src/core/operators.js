@@ -41,11 +41,14 @@ const query = (ast, {meta = 2} = {}) => {
     let queryOp = values => values.pop();
 
     if (jp.value(ast, '$.operators.query')) {
-        const regex = /\+(\d*)/;
-        const {take} = sx.tokenize(regex, ast.operators.query, {tokenNames: ['take']});
-        queryOp = bins.take(take);
+
+        const ops = {
+            '+': ast => count => values => bins.take(count)(values),
+            '-': ast => count => values => count ? bins.skip(count)(values) : values.pop() // semantics of standalone - are not yet defined
+        };
+        const [op, ...count] = ast.operators.query;
+        queryOp = ops[op](ast)(F.isEmptyValue(count) ? undefined : bins.asInt(count.join('')));
     }
-    // return F.withOneSlot(F.take)(take, F.__);
     return {...ast, '@meta': meta, value: queryOp(ast.value)};
 };
 
@@ -115,7 +118,7 @@ const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
         '*': ast => ({...ast, value: [...F.iterator(ast.value)]}), // no-op on arrays, enumerates object values in Object.keys order
-        '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
+        '**': ast => ({...ast, value: [...F.iterator(ast.value, activi)]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
     const [i, ik = ''] = ast.operators.enumerate;

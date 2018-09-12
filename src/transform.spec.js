@@ -212,6 +212,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
         oneScore: '{{productReview..score}}', // <- * means get exactly one search results. The value is substituted as is unless the place holder is a part of a bigger string, in that case it is replaced into the string template
         users: '{+100{..author}}', // take all matches
         top5users: '{+5{..author}}', // take n matches
+        skip2users: '{-2{..author}}', // take n matches
         optional1: '{?=default {["not.there"]}}', // lookup from sources['default']
         optional2: '{?=default:OPTIONAL DEFAULT VALUE 2 {["not.there"]}}', // use default value provided
         optional2Quoted: '{?=default:"OPTIONAL DEFAULT VALUE 2" {["not.there"]}}', // use default value provided
@@ -247,6 +248,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
         oneScore: 1,
         users: ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
         top5users: ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
+        skip2users: ["memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
         optional1: "@default::default-value", // lookup from sources['default']
         optional2: "OPTIONAL DEFAULT VALUE 2", // use default value provided
         optional2Quoted: '"OPTIONAL DEFAULT VALUE 2"', // use default value provided
