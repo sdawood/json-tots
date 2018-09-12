@@ -102,8 +102,8 @@ const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
         },
         '#': ast => tag => {
-            const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : jpify(tag);
-            jp.value(tags, path, ast.value);
+            const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
+            tags[path] = ast.value;
             return {...ast, tag: path};
         }
     };
@@ -118,7 +118,7 @@ const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
         '*': ast => ({...ast, value: [...F.iterator(ast.value)]}), // no-op on arrays, enumerates object values in Object.keys order
-        '**': ast => ({...ast, value: [...F.iterator(ast.value, activi)]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
+        '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
     const [i, ik = ''] = ast.operators.enumerate;

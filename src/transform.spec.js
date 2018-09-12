@@ -71,7 +71,7 @@ const original = Object.freeze({
     'Safety.Warning.On.Root': 'Always wear a helmet' // attribute name with `.`
 });
 
-describe('transform/meta-0 (jsonpath deref and string template interpolation)', () => {
+describe('jsonpath deref and string template interpolation', () => {
     const template = {
         name: '{{title}} [{{description}}] http://items/{{title}}',
         reviews: {
@@ -135,7 +135,7 @@ describe('transform/meta-0 (jsonpath deref and string template interpolation)', 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers with [ NO ] arguments + constrains', () => {
+describe('simple interpolation with query modifiers with [ NO ] arguments + constrains', () => {
     const template = {
         name: '{{title}} [{{description}}] http://items/{{title}}',
         reviews: {
@@ -194,7 +194,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers [+] with arguments + constrains [!?] with arguments', () => {
+describe('simple interpolation with query modifiers [+] with arguments + constrains [!?] with arguments', () => {
     const template = {
         name: '{{title}} [{{description}}] http://items/{{title}}',
         // updatedAt: '{!asDate{updatedAt}}', // support removed from syntax
@@ -293,7 +293,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers [+] with arguments + constrains [!?] with arguments | functions pipeline', () => {
+describe('simple interpolation with query modifiers [+] with arguments + constrains [!?] with arguments | functions pipeline', () => {
     const template = {
         name: '{{title} | toUpperCase } [{{description}}] http://items/{{title}}',
         // updatedAt: '{!asDate{updatedAt}}',
@@ -420,60 +420,7 @@ describe('deref-jsonpath:: meta-0/1/2 simple interpolation with query modifiers 
     });
 });
 
-describe.skip('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
-    const template = {
-        name: '{{title}}',
-        reviews: {
-            high: [1, 2, 'prelude', ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', {keyBefore: 'literal value before'},
-                '{.. {productReview.fiveStar}}',
-                {
-                    praise: '{+{["comment","author"]}}',
-                    stars: '{{viewAs}}'
-                },
-                {keyAfter: 'literal value after'},
-                '{{description}}'
-            ],
-            low: ['{.. {productReview.oneStar}}', {
-                criticism: '{{[(@.length - 1)].comment}}'
-            }],
-            disclaimer: 'Ad: {{comment}}'
-        },
-        reviewsSummary: ['{..|**{productReview}}', '{{$}}'], // [keys]
-        views: ['{.. | ** {pictures}}', '[{{view}}]({{images.length}})'],
-        profiles: ['{.. | ** | + {..author}}', 'www.domain.com/user/?name={{$}}']
-    };
-
-    const expectedResult = {
-        name: original.title,
-        reviews: {
-            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], original.productReview.fiveStar.length,
-                original.productReview.fiveStar.map(x => ({praise: [x.comment, x.author], stars: x.viewAs})),
-                {keyAfter: 'literal value after'}],
-            low: [{criticism: original.productReview.oneStar[original.productReview.oneStar.length - 1].comment}],
-            disclaimer: `Ad: ${original.comment}`
-        },
-        reviewsSummary: F.map(([k, v]) => k, F.iterator(original.productReview, {indexed: true, kv: true})),
-        views: [original.pictures.map(x => `[${x.view}](${x.images.length})`)],
-        profiles: [jp.query(original, '$..author').map(x => `www.domain.com/user/?name=${x}`)]
-    };
-
-    let result;
-    const templateClone = traverse(template).clone();
-
-    beforeEach(() => {
-        result = transform(templateClone)(original);
-    });
-
-    it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
-        expect(result).toEqual(expectedResult);
-    });
-
-    it('does not mutate the template', () => {
-        expect(templateClone).toEqual(template);
-    });
-});
-
-describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `document` to n successor array elements as template', () => {
+describe('inception, apply first element as `document` to n successor array elements as template, the opposite and zip-align', () => {
     const template = {
         name: '{{title}}',
         reviews: {
@@ -536,7 +483,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 inception, apply first element as `docum
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | ** }`', () => {
+describe('flatten and doubleFlatten pipes`} | * | ** }`', () => {
     const template = {
         allReviews: '{+{..productReview["fiveStar","oneStar"]}|*}',
         fiveStar: '{+{..fiveStar}|*}' // example common use-case: multiple results for jsonpath.query are in an array, fiveStar item is also an array
@@ -593,7 +540,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 flatten and doubleFlatten pipes`} | * | 
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2/3 tagging with or without label', () => {
+describe('tagging with or without label', () => {
     const template = {
         a: {
             b: {
@@ -618,7 +565,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 tagging with or without label', () => {
     });
 
     it('sets the tagged values into tags either by label or path', () => {
-        expect(tags).toEqual({id: original.id, a: {b: {c: original.title}}}); //tag with no name uses the tagged node's path
+        expect(tags).toEqual({"$.a.b.c": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
     });
 
 
@@ -627,7 +574,7 @@ describe('deref-jsonpath:: meta-0/1/2/3 tagging with or without label', () => {
     });
 });
 
-describe('deref-jsonpath:: meta-0/1/2/3 @function expression node, with pipes and args node', () => {
+describe('@function expression node, with pipes and args node', () => {
     const helloWorld = () => 'hello world';
 
     const template = {

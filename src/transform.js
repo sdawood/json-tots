@@ -20,6 +20,17 @@ const defaultConfig = {
 const bins = require('./core/builtins');
 const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
 
+/**
+ * Transforms JSON document using a JSON template
+ * @param template Template JSON
+ * @param sources A map of alternative document-sources, including `default` source
+ * @param tags Reference to a map that gets populated with Tags
+ * @param functions A map of user-defined function, if name-collision occurs with builtin functions, user-defined functions take precedence
+ * @param args A map of extended arguments to @function expressions, args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
+ * @param config Allows to override defaultConfig
+ * @param builtins A map of builtin functions, defaults to ./core/builtins.js functions
+ * @returns {function(*=): *}
+ */
 const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     let result;
 
