@@ -4,7 +4,7 @@ master|develop|npm
 
 # json-tots
 
-`json-tots` offers is a JSON Template Of Templates Declarative Transformation and Rendering engine.
+`json-tots` offers a JSON Template Of Templates Declarative Transformation and Rendering engine.
 Everything is JSON, the template, the document, and extended arguments for template functions.
 
 json-tots supports:
