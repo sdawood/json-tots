@@ -1,6 +1,6 @@
 {
   "name": "json-tots",
-  "version": "0.0.1",
+  "version": "0.0.0-development",
   "description": "Template of Templates, a.k.a Template Should Eat Itself",
   "main": "lib/transform.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "prebuild": "rimraf lib",
     "build": "babel --copy-files --out-dir lib --ignore *.spec.js src",
     "eslint": "./node_modules/.bin/eslint src --quiet",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post"
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "dependencies": {
     "babel-runtime": "^6.23.0",
@@ -31,7 +32,8 @@
     "eslint": "~3.18.0",
     "jest": "^23.6.0",
     "rimraf": "^2.6.1",
-    "semantic-release": "^6.3.6"
+    "semantic-release": "^15.9.15",
+    "travis-deploy-once": "^5.0.7"
   },
   "config": {
     "commitizen": {
