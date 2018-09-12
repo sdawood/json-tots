@@ -6,6 +6,12 @@ notifications:
   email: false
 node_js:
   - '8.4'
+install:
+- npm ci
+# keep the npm cache around to speed up installs
+cache:
+  directories:
+  - "$HOME/.npm"
 before_script:
   - npm prune
 script:
