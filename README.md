@@ -156,7 +156,7 @@ Now that we have covered the template structure (everything is JSON) and learned
 
 json-tots Template String                      | Description
 ------------------------------|------------
-`"Arbitrary text { [<operators>*] {<jsonpath>} [<pipes>*] } and then some more text"`       | A JSON string literal that includes a place holder containing a jsonpath to be derefed from the document (or scoped-document), `operators` and `pipes` are optional. multiple operators can be separated with a `|`, similarly for pipes.
+`"Arbitrary text { [<operators>*] {<jsonpath>} [<pipes>*] } and then some more text"`       | A JSON string literal that includes a place holder containing a jsonpath to be derefed from the document (or scoped-document), `operators` and `pipes` are optional. multiple operators can be separated with a <code>|</code>, similarly for pipes.
 **Operators**|**Description**
 **Query Operators**| Examples: `'{+{a.b.c}}', '{+10{a.b.c}}', '{-10{a.b.c}}'`
 `+`|Return all jsonpath query results as an Array, without `+` we get only one result.
@@ -197,10 +197,10 @@ json-tots Template String                      | Description
 `...`| Same as above but recursively descend into nested scope for the next `TWO` template items. In general, depth is determined using the number of `.` used.
 `.*`| Same as above but recursively descend into nested scope for `ALL` subsequent template items in the template array, i.e. template-0 is rendered from main document, template-n+1 is rendered using scoped-document produced by rendering template-n. This is a convience feature that allows shorter and more focused jsonpath expressions for heavily nested JSON and simplifies using `partial-templates` for inner scopes.
 **Pipes**|**Description**
-`*`| Flattens a nested array of arrays into a flat array, e.g. `[[1], [2], [3]]` flattens to `[1, 2, 3]`. Very common use cases specially with jsonpath recursive queries and `inception`. Example: `'{{a.b.c} | * }'`
-`**`| Flattens a nested array of [array of arrays] into a flat array, e.g. `[[[1], [2], [3]]]` flattens to `[1, 2, 3]`. Only appreciated when the need arises. Use carefully in order not to enumerate literals accidentally. Example: `'{{a.b.c} | ** }'`
-`<built-in-function-name> OR <user-defined-function-name>`| Creates a pipelines of all piped `arity 1` functions, e.g. `{{a.b.c} | foo | bar}`, the pipeline is called with the renderedValue as expected from a functional programming pipe operations. Example: `'{{a.b.c} | asInt | isEven }'`
-`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. `{{a.b.c} | add:10 | pow:2}`, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`
+`*`| Flattens a nested array of arrays into a flat array, e.g. `[[1], [2], [3]]` flattens to `[1, 2, 3]`. Very common use cases specially with jsonpath recursive queries and `inception`. Example: <code>'{{a.b.c} | * }'</code>
+`**`| Flattens a nested array of [array of arrays] into a flat array, e.g. `[[[1], [2], [3]]]` flattens to `[1, 2, 3]`. Only appreciated when the need arises. Use carefully in order not to enumerate literals accidentally. Example: <code>'{{a.b.c} | ** }'</code>
+`<built-in-function-name> OR <user-defined-function-name>`| Creates a pipelines of all piped `arity 1` functions, e.g. <code>{{a.b.c} | foo | bar}</code>, the pipeline is called with the renderedValue as expected from a functional programming pipe operations. Example: <code>'{{a.b.c} | asInt | isEven }'</code>
+`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. <code>{{a.b.c} | add:10 | pow:2}</code>, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`
 `<built-in-function-name> OR <user-defined-function-name>:arg1:__:arg3`| For functions of `arity > 1`, the function is normally called with `renderedValue` in the first position, to receive the `renderedValue` in any position, use the place-holder and the value will be received in the placeholder's position, e.g. `foo(arg1, renderedValue, arg3)`, `placeholder` can be used in any position, only `ONE` placeholder is currently allowed.
 
 ## Examples
