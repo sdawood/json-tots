@@ -19,7 +19,6 @@ module.exports = {
     asFloat: (value, base = 10) => parseFloat(value, base),
     asBool: value => value === 'true' ? true : value === 'false' ? false : null,
     asArray: (value, delimiter = '') => value.split(delimiter),
-    stringify: json => JSON.stringify(json, null, 2),
 
     of: key => o => o[key] !== undefined ? o[key] : F.reduced(o),
     has: path => o => (jp.value(o, path) !== undefined) ? o : F.reduced(o),
@@ -42,6 +41,7 @@ module.exports = {
         return isNaN(result) ? castingFunctionError({value, type: 'float'}) : result;
     },
     toString: value => value.toString(),
+    stringify: (value, keys, indent) => JSON.stringify(value, keys, indent),
     ellipsis: maxLen => str => `${str.slice(0, maxLen - 3)}...`,
     toNull: value => ['null', 'nil'].includes(value ? value.toLowerCase() : value) ? null : value,
     trim: str => str.trim(),

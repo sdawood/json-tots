@@ -208,8 +208,8 @@ json-tots Template String                      | Description
 `*`| Flattens a nested array of arrays into a flat array, e.g. `[[1], [2], [3]]` flattens to `[1, 2, 3]`. Very common use cases specially with jsonpath recursive queries and `inception`. Example: <code>'{{a.b.c} &#124; * }'</code>
 `**`| Flattens a nested array of [array of arrays] into a flat array, e.g. `[[[1], [2], [3]]]` flattens to `[1, 2, 3]`. Only appreciated when the need arises. Use carefully in order not to enumerate literals accidentally. Example: <code>'{{a.b.c} &#124; ** }'</code>
 `<built-in-function-name> OR <user-defined-function-name>`| Creates a pipelines of all piped `arity 1` functions, e.g. <code>{{a.b.c} &#124; foo &#124; bar}</code>, the pipeline is called with the renderedValue as expected from a functional programming pipe operations. Example: <code>'{{a.b.c} &#124; asInt &#124; isEven }'</code>
-`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. <code>{{a.b.c} &#124; add:10 &#124; pow:2}</code>, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`
-`<built-in-function-name> OR <user-defined-function-name>:arg1:__:arg3`| For functions of `arity > 1`, the function is normally called with `renderedValue` in the first position, to receive the `renderedValue` in any position, use the place-holder and the value will be received in the placeholder's position, e.g. `foo(arg1, renderedValue, arg3)`, `placeholder` can be used in any position, only `ONE` placeholder is currently allowed.
+`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. <code>{{a.b.c} &#124; add:10 &#124; pow:2}</code>, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`. Literal values text is parsed for you, i.e. `true`, `false`, `null`, `undefined` and also float numeric text and int text, i.e. 1, 100, 0.5, 100.99
+`<built-in-function-name> OR <user-defined-function-name>:arg1:__:arg3`| For functions of `arity > 1`, the function is normally called with `renderedValue` in the first position, to receive the `renderedValue` in any position, use the place-holder and the value will be received in the placeholder's position, e.g. `foo(arg1, renderedValue, arg3)`, `placeholder` can be used in any position, only `ONE` placeholder is currently allowed. `__` can be at the first position for arity > 1. multi-argument functions shouldn't be higher order.
 
 ## Examples
 Starting with this generous JSON document
@@ -285,162 +285,166 @@ const document = {
 
 ### Query/Constraints Operators Example
 ```js
-    const template = {
-        name: '{{title}} [{{description}}] http://items/{{title}}',
-        reviews: {
-            eula: 'read and agree and let us get on with it',
-            high: '{{productReview.fiveStar[0].comment}}',
-            low: '{{productReview.oneStar[0].comment}}',
-            disclaimer: 'Ad: {{comment}}'
-        },
-        safety: '{{["Safety.Warning.On.Root"]}}',
-        topRaters: '{{productReview.fiveStar[0]["first.name"]}} - {{productReview.fiveStar[1]["first.name"]}} - {{productReview.oneStar[0]["first.name"]}}',
-        topTaggers: '{{tags["tag-name-with-dash"].author}} - {{tags["tag name with spaces"].author}} - {{tags["tag.name.with.dots"].author}}',
-        scores: '{+{productReview..score}}', // <- * means get one or more search results. The value is substituted as is unless the place holder is a part of a bigger string, in that case it is replaced into the string template
-        oneScore: '{{productReview..score}}', // <- * means get exactly one search results. The value is substituted as is unless the place holder is a part of a bigger string, in that case it is replaced into the string template
-        users: '{+{..author}}', // take all matches
-        optional: '{?{["not.there"]}}', // key would vanish if value doesn't exist
-        optionalInContext: 'Value for not.there = {?{["not.there"]}}', // would evaluate to '' if value doesn't exist
-        required: '{!{["not.there"]}}' // should be set to null if value doesn't exist
-    };
+const template = {
+    name: '{{title}} [{{description}}] http://items/{{title}}',
+    reviews: {
+        eula: 'read and agree and let us get on with it',
+        high: '{{productReview.fiveStar[0].comment}}',
+        low: '{{productReview.oneStar[0].comment}}',
+        disclaimer: 'Ad: {{comment}}'
+    },
+    safety: '{{["Safety.Warning.On.Root"]}}',
+    topRaters: '{{productReview.fiveStar[0]["first.name"]}} - {{productReview.fiveStar[1]["first.name"]}} - {{productReview.oneStar[0]["first.name"]}}',
+    topTaggers: '{{tags["tag-name-with-dash"].author}} - {{tags["tag name with spaces"].author}} - {{tags["tag.name.with.dots"].author}}',
+    scores: '{+{productReview..score}}', // <- * means get one or more search results. The value is substituted as is unless the place holder is a part of a bigger string, in that case it is replaced into the string template
+    oneScore: '{{productReview..score}}', // <- * means get exactly one search results. The value is substituted as is unless the place holder is a part of a bigger string, in that case it is replaced into the string template
+    users: '{+{..author}}', // take all matches
+    optional: '{?{["not.there"]}}', // key would vanish if value doesn't exist
+    optionalInContext: 'Value for not.there = {?{["not.there"]}}', // would evaluate to '' if value doesn't exist
+    required: '{!{["not.there"]}}' // should be set to null if value doesn't exist
+};
 
-    const result = transform(template)(document);
+const result = transform(template)(document);
 
-    /** result
-    {
-      "name": "Bicycle 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
-      "reviews": {
-        "eula": "read and agree and let us get on with it",
-        "high": "Excellent! Can't recommend it highly enough! Buy it!",
-        "low": "Terrible product! Do no buy this.",
-        "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
-      },
-      "safety": "Always wear a helmet",
-      "topRaters": "user1 - user2 - user3",
-      "topTaggers": "memberUser4 - memberUser5 - memberUser6",
-      "scores": [
-        5,
-        5,
-        1
-      ],
-      "oneScore": 1,
-      "users": [
-        "anonymousUser1",
-        "anonymousUser2",
-        "memberUser3",
-        "memberUser4",
-        "memberUser5",
-        "memberUser6",
-        "user1@domain1.com",
-        "user2@domain2.com",
-        "user3@domain3.com"
-      ],
-      "optionalInContext": "Value for not.there = ",
-      "required": null
-    }
+/** result
+{
+  "name": "Bicycle 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
+  "reviews": {
+    "eula": "read and agree and let us get on with it",
+    "high": "Excellent! Can't recommend it highly enough! Buy it!",
+    "low": "Terrible product! Do no buy this.",
+    "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
+  },
+  "safety": "Always wear a helmet",
+  "topRaters": "user1 - user2 - user3",
+  "topTaggers": "memberUser4 - memberUser5 - memberUser6",
+  "scores": [
+    5,
+    5,
+    1
+  ],
+  "oneScore": 1,
+  "users": [
+    "anonymousUser1",
+    "anonymousUser2",
+    "memberUser3",
+    "memberUser4",
+    "memberUser5",
+    "memberUser6",
+    "user1@domain1.com",
+    "user2@domain2.com",
+    "user3@domain3.com"
+  ],
+  "optionalInContext": "Value for not.there = ",
+  "required": null
+}
 **/
 ```
 
 ### Inception Operators Example
 
 ```js
-    const template = {
-        name: '{{title}}',
-        reviews: {
-            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
-                praise: '{+{["author","comment"]}}',
-                stars: '{{viewAs}}'
-            }, {keyAfter: 'literal value after'}
-            ],
-            low: ['{>* {productReview.oneStar}}',
-                {
-                    criticism: '{{[(@.length - 1)].comment}}'
-                },
-                {count: '{{length}}'}
-            ],
-            disclaimer: 'Ad: {{comment}}'
-        },
-        reviewsSummary: [
-            '{>>>{productReview}}', //use this after rendering as a scoped-document, render next n templates with it
-            '{+{$..score}}',
-            {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
-        ], // render next n nodes with leading rendered item as scoped-document
-        views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable scoped-document, render with next node
-        twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
-        images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'], // zip-align
-        recursive3: ['{.3{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}'],
-        recursive2: ['{.2{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}']
-    };
+const template = {
+    name: '{{title}}',
+    reviews: {
+        high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], '{{productReview.fiveStar.length}}', '{>> {productReview.fiveStar[0]}}', {
+            praise: '{+{["author","comment"]}}',
+            stars: '{{viewAs}}'
+        }, {keyAfter: 'literal value after'}
+        ],
+        low: ['{>* {productReview.oneStar}}',
+            {
+                criticism: '{{[(@.length - 1)].comment}}'
+            },
+            {count: '{{length}}'}
+        ],
+        disclaimer: 'Ad: {{comment}}'
+    },
+    reviewsSummary: [
+        '{>>>{productReview}}', //use this after rendering as a scoped-document, render next n templates with it
+        '{+{$..score}}',
+        {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
+    ], // render next n nodes with leading rendered item as scoped-document
+    views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable scoped-document, render with next node
+    twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
+    images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'], // zip-align
+    recursive3: ['{.3{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}'],
+    recursive2: ['{.2{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}']
+};
 
-    const result = transform(template)(document);
+const result = transform(template)(document);
 
-    /** result
-    {
-        "name": "Bicycle 123",
-        "reviews": {
-            "high": [1, 2, "prelude", {"keyBefore": "literal value before"}, ["a", "b", "c"], 2, {
-                "praise": ["user1@domain1.com", "Excellent! Can't recommend it highly enough! Buy it!"],
-                "stars": "*****"
-            }, {"keyAfter": "literal value after"}],
-            "low": [{"criticism": "Terrible product! Do no buy this."}, {"count": 1}],
-            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
-        },
-        "reviewsSummary": [[5, 5, 1], {"summary": {"fiveStar": 2, "oneStar": 1}}],
-        "views": ["[front](2)", "[rear](2)", "[side](2)"],
-        "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
-        "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"],
-        "recursive3": [original.productReview.fiveStar[1].comment, original.description],
-        "recursive2": [original.productReview.fiveStar[1], original.comment, original.description]
-    }
-    **/
+/** result
+{
+    "name": "Bicycle 123",
+    "reviews": {
+        "high": [1, 2, "prelude", {"keyBefore": "literal value before"}, ["a", "b", "c"], 2, {
+            "praise": ["user1@domain1.com", "Excellent! Can't recommend it highly enough! Buy it!"],
+            "stars": "*****"
+        }, {"keyAfter": "literal value after"}],
+        "low": [{"criticism": "Terrible product! Do no buy this."}, {"count": 1}],
+        "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
+    },
+    "reviewsSummary": [[5, 5, 1], {"summary": {"fiveStar": 2, "oneStar": 1}}],
+    "views": ["[front](2)", "[rear](2)", "[side](2)"],
+    "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
+    "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"],
+    "recursive3": [original.productReview.fiveStar[1].comment, original.description],
+    "recursive2": [original.productReview.fiveStar[1], original.comment, original.description]
+}
+**/
 
 ```
 
 ### Function Expression Example
 ```js
-    const helloWorld = () => 'hello world';
+const helloWorld = () => 'hello world';
 
-    const template = {
-        updateAt: '@now',
-        age: '@since',
-        stockSummary: '@stock',
-        id: '@uuid | ellipsis:10',
-        expensive: '{{price} | gte:500:__}',
-        injectedFunction: helloWorld
-    };
+const template = {
+    updateAt: '@now',
+    age: '@since',
+    stockSummary: '@stock',
+    id: '@uuid | ellipsis:10',
+    expensive: '{{price} | gte:500:__}',
+    LDPictures: '{{pictures} | stringify:__:null:0}',
+    injectedFunction: helloWorld,
+    echo: '{{id} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__}' // literal args are parsed for you
+};
 
-    // args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
-    const args = {
-        age: [{path: '$.updatedAt'}],
-        stockSummary: [
-            {path: '$.inStock'},
-            {path: '$.inStockCount'},
-            {path: '$.quantityOnHand'},
-            {value: 100},
-            1000
-        ]
-    };
+// args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
+const args = {
+    age: [{path: '$.updatedAt'}],
+    stockSummary: [
+        {path: '$.inStock'},
+        {path: '$.inStockCount'},
+        {path: '$.quantityOnHand'},
+        {value: 100},
+        1000
+    ]
+};
 
 
-    const gte = (source, target) => target >= source; // builtin gte is higher-order function, overriding with arity-2 function to illustrate __ placeholder
-    const now = () => '2018-09-11T00:20:08.411Z';
-    const since = previous => `Now: [2018-09-11T00:20:08.411Z], last update: ${previous}`;
-    const stock = (...args) => args.join('--');
-    const uuid = () => '4213ad4f-a2b3-4c02-8133-f89019eb6093'; // override for mocking/testing
+const gte = (source, target) => target >= source; // builtin gte is higher-order function, overriding with arity-2 function to illustrate __ placeholder
+const now = () => '2018-09-11T00:20:08.411Z';
+const since = previous => `Now: [2018-09-11T00:20:08.411Z], last update: ${previous}`;
+const stock = (...args) => args.join('--');
+const uuid = () => '4213ad4f-a2b3-4c02-8133-f89019eb6093'; // override for mocking/testing
+const echoArgs = (...args) => args;
 
-    const result = transform(template, {functions: {now, since, stock, uuid, gte}, args})(document);
+const result = transform(template, {functions: {now, since, stock, uuid, gte, echoArgs}, args})(document);
 
-    /** result
-    {
-        updateAt: '2018-09-11T00:20:08.411Z',
-        age: 'Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47',
-        stockSummary: 'true--100----100--1000',
-        id: '4213ad4...',
-        expensive: true,
-        injectedFunction: 'hello world'
-    };
-    **/
+console.log(result);
 
+/** result
+{ updateAt: '2018-09-11T00:20:08.411Z',
+  age: 'Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47',
+  stockSummary: 'true--100----100--1000',
+  id: '4213ad4...',
+  expensive: true,
+  LDPictures: '[{"view":"front","images":[{"big":"http://example.com/products/123_front.jpg"},{"thumbnail":"http://example.com/products/123_front_small.jpg"}]},{"view":"rear","images":[{"big":"http://example.com/products/123_rear.jpg"},{"thumbnail":"http://example.com/products/123_rear_small.jpg"}]},{"view":"side","images":[{"big":"http://example.com/products/123_left_side.jpg"},{"thumbnail":"http://example.com/products/123_left_side_small.jpg"}]}]',
+  injectedFunction: 'hello world',
+  echo: [ 1, 1000, 0.5, 100.99, true, false, null, undefined ] }
+**/
 ```
 
 For more examples please check `transform.spec.js` in the code repository.

@@ -128,6 +128,33 @@ const enumerate = (ast, {meta = 4} = {}) => {
 
 const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'));
 
+const parseTextArgs = (...args) => {
+    const parseNumeric = text => {
+        const isIntText = /\d+/;
+        const isFloatText = /\d+\.\d+/;
+
+        if (isFloatText.test(text)) {
+            return parseFloat(text, 10);
+        } else if (isIntText.test(text)) {
+            return parseInt(text, 10);
+        } else {
+            return undefined;
+        }
+    };
+
+    const literals = {
+        'true': true,
+        'false': false,
+        'null': null,
+        'undefined': undefined,
+        __: F.__
+    };
+
+    const parseText = text => text in literals ? literals[text] : parseNumeric(text); // When regex or parser allows for foo:[1, 2, 3], add: || JSON.parse(text);
+
+    return F.map(parseText, args);
+};
+
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     // console.log('INSIDE PIPE OPERATOR')
     /*
@@ -167,12 +194,12 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
         const phIndex = args.indexOf('__');
         let fn = enrichedFunctions[fnName];
 
-        if (phIndex > 0) {
-            args[phIndex] = F.__;
+        if (phIndex >= 0) {
+            // args[phIndex] = F.__;
             fn = F.oneslot(functions[fnName]);
         }
 
-        return args.length ? fn(...args) : fn;
+        return args.length ? fn(...parseTextArgs(...args)) : fn;
     }, fnTuples);
 
     return {...ast, '@meta': meta, value: F.pipes(...fnPipeline)(ast.value)};

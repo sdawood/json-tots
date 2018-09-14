@@ -582,7 +582,10 @@ describe('@function expression node, with pipes and args node', () => {
         age: '@since',
         stockSummary: '@stock',
         id: '@uuid | ellipsis:10',
-        injectedFunction: helloWorld
+        expensive: '{{price} | gte:500:__}',
+        LDPictures: '{{pictures} | stringify:__:null:0}',
+        injectedFunction: helloWorld,
+        echo: '{{c.d} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__}' // literal args are parsed for you
     };
 
     // args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
@@ -597,25 +600,30 @@ describe('@function expression node, with pipes and args node', () => {
         ]
     };
 
+
+    const gte = (source, target) => target >= source; // builtin gte is higher-order function, overriding with arity-2 function to illustrate __ placeholder
     const now = () => '2018-09-11T00:20:08.411Z';
     const since = previous => `Now: [2018-09-11T00:20:08.411Z], last update: ${previous}`;
     const stock = (...args) => args.join('--');
     const uuid = () => '4213ad4f-a2b3-4c02-8133-f89019eb6093'; // override for mocking/testing
+    const echoArgs = (...args) => args;
 
     const expectedResult = {
         "age": "Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47",
         "id": "4213ad4...",
         "stockSummary": "true--100----100--1000",
         "updateAt": "2018-09-11T00:20:08.411Z",
-        "injectedFunction": "hello world"
+        expensive: true,
+        LDPictures: "[{\"view\":\"front\",\"images\":[{\"big\":\"http://example.com/products/123_front.jpg\"},{\"thumbnail\":\"http://example.com/products/123_front_small.jpg\"}]},{\"view\":\"rear\",\"images\":[{\"big\":\"http://example.com/products/123_rear.jpg\"},{\"thumbnail\":\"http://example.com/products/123_rear_small.jpg\"}]},{\"view\":\"side\",\"images\":[{\"big\":\"http://example.com/products/123_left_side.jpg\"},{\"thumbnail\":\"http://example.com/products/123_left_side_small.jpg\"}]}]",
+        "injectedFunction": "hello world",
+        "echo": [1, 1000, 0.5, 100.99, true, false, null, undefined]
     };
 
     let result;
     const templateClone = traverse(template).clone();
-    const tags = {};
 
     beforeEach(() => {
-        result = transform(templateClone, {tags, functions: {now, since, stock, uuid}, args})(original);
+        result = transform(templateClone, {functions: {now, since, stock, uuid, gte, echoArgs}, args})(original);
     });
 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
