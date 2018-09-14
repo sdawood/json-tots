@@ -44,7 +44,7 @@ Usage:
         w: '{{c.d}}'
     };
 
-    const result = transform(template)(document); // transform is a higher order function
+    const result = tots.transform(template)(document); // transform is a higher order function
 
     // result
     // { x: 1, y: { yy: true }, z: 20, w: 100 }
