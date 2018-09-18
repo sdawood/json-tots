@@ -63,7 +63,7 @@ json-tots renders your template to the same JSON shape, without mutating neither
 Things get interesting when:
 - You use the string-template syntax `{{}}` in standalone or within a string literal.
 - Also within any array in the template, any item that is a string-template can utilize the inception operators to consume subsequent items following some interesting application of document and template items. See Inception Operators below for more information.
-- While all features are **Text** based by design to achieve declarative, versionable transformations; for practicality, if you inject a function (a runtime function reference) any where in your template object tree, it would be invoked and the whole `document` is passed as an argument, the returned value is rendered as-is to the result, e.g. returned result is NOT `JSON.stringify'd`.
+- While all features are **Text** based by design to achieve declarative, versionable transformations; for practicality, if you inject a function (a runtime function reference) any where in your template object tree, it would be invoked and the whole `document` is passed as an argument, the returned value is rendered as-is to the result, i.e. returned result is NOT `JSON.stringify'd`.
 
 This allows for experimentation and extensibility, for example returning an object that has a new function reference in its attributes, then re-run `transform`. `Inception` ideas of partial-templates and multi-staged rendering are endless.
 
@@ -207,9 +207,10 @@ json-tots Template String                      | Description
 **Pipes**|**Description**
 `*`| Flattens a nested array of arrays into a flat array, e.g. `[[1], [2], [3]]` flattens to `[1, 2, 3]`. Very common use cases specially with jsonpath recursive queries and `inception`. Example: <code>'{{a.b.c} &#124; * }'</code>
 `**`| Flattens a nested array of [array of arrays] into a flat array, e.g. `[[[1], [2], [3]]]` flattens to `[1, 2, 3]`. Only appreciated when the need arises. Use carefully in order not to enumerate literals accidentally. Example: <code>'{{a.b.c} &#124; ** }'</code>
-`<built-in-function-name> OR <user-defined-function-name>`| Creates a pipelines of all piped `arity 1` functions, e.g. <code>{{a.b.c} &#124; foo &#124; bar}</code>, the pipeline is called with the renderedValue as expected from a functional programming pipe operations. Example: <code>'{{a.b.c} &#124; asInt &#124; isEven }'</code>
-`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. <code>{{a.b.c} &#124; add:10 &#124; pow:2}</code>, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`. Literal values text is parsed for you, i.e. `true`, `false`, `null`, `undefined` and also float numeric text and int text, i.e. 1, 100, 0.5, 100.99
-`<built-in-function-name> OR <user-defined-function-name>:arg1:__:arg3`| For functions of `arity > 1`, the function is normally called with `renderedValue` in the first position, to receive the `renderedValue` in any position, use the place-holder and the value will be received in the placeholder's position, e.g. `foo(arg1, renderedValue, arg3)`, `placeholder` can be used in any position, only `ONE` placeholder is currently allowed. `__` can be at the first position for arity > 1. multi-argument functions shouldn't be higher order.
+`<built-in-function-name> OR <user-defined-function-name>`| Creates a pipelines of all piped `arity 1` functions, e.g. <code>{{a.b.c} &#124; foo &#124; bar}</code>, the pipeline is called with the `renderedValue` as expected from a functional programming pipe operations. Example: <code>'{{a.b.c} &#124; asInt &#124; isEven }'</code>
+`<built-in-function-name> OR <user-defined-function-name>:arg1:arg2:arg3`| Same as above, but calling the higher-order-function with `foo(arg1, arg2)(renderedValue)` e.g. <code>{{a.b.c} &#124; add:10 &#124; pow:2}</code>, where `builtins['add']` is a higher-order function that returns an `arity 1` function, i.e. `source => target => parseFloat(source, 10) + target;`. Literal values text is parsed for you, i.e. `true`, `false`, `null`, `undefined` and also float numeric text and int text, i.e. 1, 100, 0.5, 100.99. NOTE: Pipe functions with arguments don't need to be higher order, ordinary functions will be called with the arguments and they never get a chance to receive the `renderedValue`. The choice is yours.
+`<built-in-function-name> OR <user-defined-function-name>:arg1:__:arg3`| For functions utilizing the `placeholder` syntax `__`, they MUST NOT be higher order, since the `renderedValue` is passed normally as an argument in the position designated by the `placeholder`.
+
 
 ## Examples
 Starting with this generous JSON document
@@ -396,7 +397,7 @@ const result = transform(template)(document);
 
 ```
 
-### Function Expression Example
+### Function Expression and Argument Parsing Example
 ```js
 const helloWorld = () => 'hello world';
 
@@ -408,13 +409,15 @@ const template = {
     expensive: '{{price} | gte:500:__}',
     LDPictures: '{{pictures} | stringify:__:null:0}',
     injectedFunction: helloWorld,
-    echo: '{{id} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__}' // literal args are parsed for you
+    echo: '{{id} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__}', // literal args are parsed for you
+    echoJSON: '{{id} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__ | stringify }',
+    echoArgsReduced: '{{id} | echoArgs:1:1000:0.5:100.99:true:false:null:undefined:__ | done}'
 };
 
 // args keys are either functionName (if used only once), functionKey (if globally unique) or functionPath which is unique but ugliest option to write
 const args = {
-    age: [{path: '$.updatedAt'}],
-    stockSummary: [
+    since: [{path: '$.updatedAt'}], // FUNCTION NAME in @functionName
+    stockSummary: [                 // FUNCTION KEY in args
         {path: '$.inStock'},
         {path: '$.inStockCount'},
         {path: '$.quantityOnHand'},
@@ -422,7 +425,6 @@ const args = {
         1000
     ]
 };
-
 
 const gte = (source, target) => target >= source; // builtin gte is higher-order function, overriding with arity-2 function to illustrate __ placeholder
 const now = () => '2018-09-11T00:20:08.411Z';
@@ -443,9 +445,40 @@ console.log(result);
   expensive: true,
   LDPictures: '[{"view":"front","images":[{"big":"http://example.com/products/123_front.jpg"},{"thumbnail":"http://example.com/products/123_front_small.jpg"}]},{"view":"rear","images":[{"big":"http://example.com/products/123_rear.jpg"},{"thumbnail":"http://example.com/products/123_rear_small.jpg"}]},{"view":"side","images":[{"big":"http://example.com/products/123_left_side.jpg"},{"thumbnail":"http://example.com/products/123_left_side_small.jpg"}]}]',
   injectedFunction: 'hello world',
-  echo: [ 1, 1000, 0.5, 100.99, true, false, null, undefined ] }
+  echo: [ 1, 1000, 0.5, 100.99, true, false, null, undefined ], // !!! WHAAAAT !!!
+  echoJSON: '[\n  1,\n  1000,\n  0.5,\n  100.99,\n  true,\n  false,\n  null,\n  null,\n  123\n]',
+  echoArgsReduced: [ 1, 1000, 0.5, 100.99, true, false, null, undefined, 123 ] }
 **/
 ```
+
+#### Example Discussion
+
+From the previous example we notice the following:
+- function expression `@func` receives its arguments from the `args` mapping, passed to `transform` function in the options.
+- function expression arguments are `keyed` in `args` using any of the following options, they are attempted to be deref`d in the following order:
+    - arg key is either `functionName` (in `@functionName`) if the name is used only once in the template. Example: `since` key in args above
+    - functionKey (if globally unique). Example: `stockSummary` above
+    - functionPath which is always unique but ugliest option to write. Recommended for machine-created templates.
+
+Now: what is happening in this result:
+
+`echo: [ 1, 1000, 0.5, 100.99, true, false, null, undefined ], // !!! WHAAAAT !!!`
+
+We notice that although the echoArgs function works as expected and returns an array of its (already parsed) arguments, the `renderedValue` 123 is missing from the output.
+What happens is, your function returned a container (Array in this case), the `json-tots` would descend into that Array or Map looking for more `{{}}` to consume. This is key to partial-templates and staged-rendering.
+The `undefined` value is not supported by JSON, and setting that node's (Array[7]) value to `undefined` removes the corresponding key `7` from the Array, effectively shifting the rest of the elements left and signaling a pre-mature completion of any Array Loop logic.
+
+_**`traverse` is partially to blame, the rest of the blame is on us for sprouting an array for it to traverse, and started updating values to `undefined`**__
+
+For now, there are a couple of elegant options (until the root cause is eliminated and immutability during iteration is enforced):
+- You are happy with the result and you are not going to be producing `undefined` in your `generated` arrays
+- You tell `json-tots` that the value you are returning is not to be traversed looking for more templates. You signal that by `piping` to `done`, i.e. `...}fnThatSproutsArrayOrObject | done}` ). `done` is a builtin that wraps your returned value in a `closure` so that it is not further traversed.
+- You pipe that newly generated container value (Array or Object) into `stringify`
+- The `!` operator comes to mind, it forces missing values into `null`. Currently it is executed against the deref`d value (whatever jsonpath.query returned from the document) and not as a last step of your function-pipeline. Maybe a similar operator can be introduced if the problem persists.
+
+Note: this is an edge case that you should rarely run into, documented to spare you hours of debugging. The right solution is to safely traverse and guard against Array splicing while iterating over its children. Remember that `undefined` wouldn't have survived JSON serialization anyhow.
+
+Makes you wish that `Immutable` data structures are used everywhere, which is at top of the roadmap priorities.
 
 For more examples please check `transform.spec.js` in the code repository.
 

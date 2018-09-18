@@ -19,7 +19,7 @@ module.exports = {
     asFloat: (value, base = 10) => parseFloat(value, base),
     asBool: value => value === 'true' ? true : value === 'false' ? false : null,
     asArray: (value, delimiter = '') => value.split(delimiter),
-
+    orNull: value => value || null,
     of: key => o => o[key] !== undefined ? o[key] : F.reduced(o),
     has: path => o => (jp.value(o, path) !== undefined) ? o : F.reduced(o),
     flatten: F.flatten,
@@ -41,7 +41,7 @@ module.exports = {
         return isNaN(result) ? castingFunctionError({value, type: 'float'}) : result;
     },
     toString: value => value.toString(),
-    stringify: (value, keys, indent) => JSON.stringify(value, keys, indent),
+    stringify: (value, keys = null, indent = 2) => JSON.stringify(value, keys, indent),
     ellipsis: maxLen => str => `${str.slice(0, maxLen - 3)}...`,
     toNull: value => ['null', 'nil'].includes(value ? value.toLowerCase() : value) ? null : value,
     trim: str => str.trim(),
@@ -62,5 +62,9 @@ module.exports = {
     remainder: source => target => target / parseFloat(source, 10),
     pow: source => target => target ** parseFloat(source, 10),
     mul: source => target => parseFloat(source, 10) * target,
-    matches: source => target => (new RegExp(target)).test(source)
+    matches: source => target => (new RegExp(target)).test(source),
+    reducer: F.reduced,
+    unreduced: F.unreduced,
+    done: F.reduced,
+    undone: F.unreduced
 };

@@ -69,7 +69,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
             result = !F.isEmptyValue(altSource) ? F.compose(query, deref(sources))(ast, {
                 meta,
                 source: altSource
-            }) : {...result, value: null};
+            }) : {...result, value: F.isNil(ast.value) ? null : ast.value};
             const [defaultValue] = args;
             result = result.value !== undefined ? result : (
                 defaultValue !== undefined ? {
@@ -138,7 +138,7 @@ const parseTextArgs = (...args) => {
         } else if (isIntText.test(text)) {
             return parseInt(text, 10);
         } else {
-            return undefined;
+            return text;
         }
     };
 
@@ -174,8 +174,9 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
 
     // ordered [['$1', 'toInt:arg1:arg2'], ['$2', 'isEven:arg1:arg2']]
     const fnPipeline = F.map(([_, fnExpr]) => {
-        const [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
-
+// eslint-disable-next-line prefer-const
+        let [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
+        args = F.map(arg => arg.trim(), args);
         const enrichedFunctions = {...functions, '*': bins.flatten, '**': bins.doubleFlatten};
         if (!(fnName in enrichedFunctions)) {
             throw new Error(`could not resolve function name [${fnName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
@@ -193,16 +194,19 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
          */
         const phIndex = args.indexOf('__');
         let fn = enrichedFunctions[fnName];
-
         if (phIndex >= 0) {
             // args[phIndex] = F.__;
-            fn = F.oneslot(functions[fnName]);
+            fn = F.oneslot(fn)(...parseTextArgs(...args)); // placeholder functions are normal functions, since renderedValue is passed into placeholder position with F.oneslot, which already creates a higher order function
+            return fn;
+        } else if (args.length === 0) {
+            return fn;  // no args functions are normal functions that receive the renderedValue
+        } else {
+            const fn2 = fn(...parseTextArgs(...args));
+            return F.isFunction(fn2) ? fn2 : F.lazy(fn2);
         }
-
-        return args.length ? fn(...parseTextArgs(...args)) : fn;
     }, fnTuples);
 
-    return {...ast, '@meta': meta, value: F.pipes(...fnPipeline)(ast.value)};
+    return {...ast, '@meta': meta, value: F.pipe(...fnPipeline)(ast.value)}; // we would love to unleash pipes (short circuit pipe), but current implementation would unreduce value reduced by functions. @TODO revisit later
 };
 
 const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.pipes'));
