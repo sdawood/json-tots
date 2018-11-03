@@ -102,7 +102,22 @@ const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
         },
         '#': ast => tag => {
-            const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
+            tag = tag.trim();
+            const tagHandler = {
+                undefined: ast.path,
+                null: ast.path,
+                '': ast.path,
+                $: jp.stringify(context.path)
+            };
+            // const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
+            console.dir(context);
+            console.log({tag});
+            let path = tagHandler[tag];
+            console.log({path});
+            if (path === undefined) {
+                path = tag;
+            }
+            console.log({path});
             tags[path] = ast.value;
             return {...ast, tag: path};
         }

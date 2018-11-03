@@ -9,7 +9,7 @@ const placeholder = {
     full: /{([^{]*?)?{(.*?)}([^}]*)?}/g,
     // allowing for all valid jsonpath characters in #<tag>, making the path valid is currently the user responsibility, e.g. #x.y["z w"]["v.q"], standalone # uses path from context
     // ... | .2 inception (lens composition) - length 2, >>> | >2 for each application - length 2, %%% | %2 positional transform (zip transform) - length 2
-    operators: /\s*(\.\*|\.{2,}|\.\d{1,2}|>\*|>{2,}|>\d{1,2}|%\*|%{2,}|%\d{1,2})?\s*\|?\s*(\*{1,2})?\s*\|?\s*(:[a-zA-Z0-9_\-\$\.\[\]"\s]*|#[a-zA-Z0-9_\-\$\.\[\]"\s]*)?\s*\|?\s*([!|\?](?:[=|~]\w+(?:\s*\:\s*["]?[a-zA-Z0-9_\s\-\$]*["]?)*)?)?\s*\|?\s*((?:\+|\-)\d*)?\s*/g, // https://regex101.com/r/dMUYpQ/25
+    operators: /\s*(\.\*|\.{2,}|\.\d{1,2}|>\*|>{2,}|>\d{1,2}|%\*|%{2,}|%\d{1,2})?\s*\|?\s*(\*{1,2})?\s*\|?\s*(:[a-zA-Z0-9_\-\$\.\[\]"\s]*|[#|@][a-zA-Z0-9_\-\$\.\[\]"\s]*)?\s*\|?\s*([!|\?](?:[=|~]\w+(?:\s*\:\s*["]?[a-zA-Z0-9_\s\-\$]*["]?)*)?)?\s*\|?\s*((?:\+|\-)\d*)?\s*/g, // https://regex101.com/r/dMUYpQ/25+
     operatorNames: ['inception', 'enumerate', 'symbol', 'constraints', 'query'],
     pipes: /(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$\.]+|\*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)/g // https://regex101.com/r/n2qnj7/6
 };
