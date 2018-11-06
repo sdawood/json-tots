@@ -96,12 +96,12 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
     sources
 }), bins.has('$.operators.constraints'));
 
-const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
+const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
         },
-        '#': ast => tag => {
+        '#': ast => (sources, tag) => {
             tag = tag.trim();
             const tagHandler = {
                 undefined: ast.path,
@@ -115,16 +115,23 @@ const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
                 path = tag;
             }
             tags[path] = ast.value;
+            sources.tags = tags;
             return {...ast, tag: path};
+        },
+        '@': ast => (sources, tag) => {
+            // throw new Error('Not Implemented Yet: [symbol(@)]');
+            const ctx = tags[tag];
+            ast.value = deref(sources)(ast, {source: 'tags'});
+            return {...ast, from: sources['tags']};
         }
     };
 
     const [op, ...tag] = ast.operators.symbol;
-    const result = ops[op](ast)(tag.join('').trim());
+    const result = ops[op](ast)(sources, tag.join('').trim());
     return {...result, '@meta': meta};
 };
 
-const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), bins.has('$.operators.symbol'));
+const symbolOperator = ({tags, context, sources}) => F.composes(symbol({tags, context, sources}), bins.has('$.operators.symbol'));
 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
@@ -225,7 +232,7 @@ const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.
 const applyAll = ({meta, sources, tags, functions, context, config}) => F.composes(
     pipeOperator({functions}),
     enumerateOperator,
-    symbolOperator({tags, context}),
+    symbolOperator({tags, context, sources}),
     constraintsOperator({sources, config}),
     query,
     deref(sources)

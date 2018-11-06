@@ -658,3 +658,23 @@ describe('scenario: tags string-templates into tags mapping', () => {
         expect(tags).toEqual(expectedTags);
     });
 });
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@tags{$.hot}} from {@.a{$}}',
+        f: ['{ # {price}}'],
+        g: '{#{tags}}'
+    };
+
+    const tags = {};
+    const expectedTags = {"$.a": 123, "$.b.e": "Brand-Company C", "price": 500, "title": "Bicycle 123", "updatedAt": "2017-10-13T10:37:47"};
+
+    it.skip('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {};
+        expect(result).toEqual(expectedResult);
+    });
+});
