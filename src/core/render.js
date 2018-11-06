@@ -5,67 +5,69 @@ const F = require('functional-pipelines');
 const sx = require('./strings');
 const operators = require('./operators');
 
-const placeholder = {
-    full: /{([^{]*?)?{(.*?)}([^}]*)?}/g,
-    // allowing for all valid jsonpath characters in #<tag>, making the path valid is currently the user responsibility, e.g. #x.y["z w"]["v.q"], standalone # uses path from context
-    // ... | .2 inception (lens composition) - length 2, >>> | >2 for each application - length 2, %%% | %2 positional transform (zip transform) - length 2
-    operators: /\s*(\.\*|\.{2,}|\.\d{1,2}|>\*|>{2,}|>\d{1,2}|%\*|%{2,}|%\d{1,2})?\s*\|?\s*(\*{1,2})?\s*\|?\s*(:[a-zA-Z0-9_\-\$\.\[\]"\s]*|[#|@][a-zA-Z0-9_\-\$\.\[\]"\s]*)?\s*\|?\s*([!|\?](?:[=|~]\w+(?:\s*\:\s*["]?[a-zA-Z0-9_\s\-\$]*["]?)*)?)?\s*\|?\s*((?:\+|\-)\d*)?\s*/g, // https://regex101.com/r/dMUYpQ/25+
-    operatorNames: ['inception', 'enumerate', 'symbol', 'constraints', 'query'],
-    pipes: /(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$\.]+|\*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)/g // https://regex101.com/r/n2qnj7/6
-};
+const parser = require('./regex/parser');
+
+// const placeholder = {
+//     full: /{([^{]*?)?{(.*?)}([^}]*)?}/g,
+//     // allowing for all valid jsonpath characters in #<tag>, making the path valid is currently the user responsibility, e.g. #x.y["z w"]["v.q"], standalone # uses path from context
+//     // ... | .2 inception (lens composition) - length 2, >>> | >2 for each application - length 2, %%% | %2 positional transform (zip transform) - length 2
+//     operators: /\s*(\.\*|\.{2,}|\.\d{1,2}|>\*|>{2,}|>\d{1,2}|%\*|%{2,}|%\d{1,2})?\s*\|?\s*(\*{1,2})?\s*\|?\s*(:[a-zA-Z0-9_\-\$\.\[\]"\s]*|[#|@][a-zA-Z0-9_\-\$\.\[\]"\s]*)?\s*\|?\s*([!|\?](?:[=|~]\w+(?:\s*\:\s*["]?[a-zA-Z0-9_\s\-\$]*["]?)*)?)?\s*\|?\s*((?:\+|\-)\d*)?\s*/g, // https://regex101.com/r/dMUYpQ/32
+//     operatorNames: ['inception', 'enumerate', 'symbol', 'constraints', 'query'],
+//     pipes: /(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$\.]+|\*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)/g // https://regex101.com/r/n2qnj7/6
+// };
 
 const rejectPlaceHolder = {open: '{!!{', close: '}!!}'};
 
-/**
- * regex place holder, a.k.a reph parser
- *
- * NOTE: the source placeholder can be repeated within the template-string, e.g. "{{x.y}} = {{x.y}}"
- * reph() would consume one only, effectively optimizing by removing the need to deref twice within the same scope
- * later when the dereffed value is replaced in the string, a //g regex is used and would cover all identical occurrences
- *
- * @param source
- * @param operators
- * @param path
- * @param pipes
- * @param meta
- * @returns {*}
- */
-const reph = ([source, [[operators] = [], [path] = [], [pipes] = []] = []] = [], meta = 0) => {
-    const ast = {source, value: null, '@meta': meta};
-
-    if (F.isEmptyValue(path)) {
-        ast.value = source;
-        return F.reduced(ast);
-    }
-
-    ast['@meta']++;
-
-    if (operators) {
-        operators = sx.tokenize(placeholder.operators, operators, {tokenNames: placeholder.operatorNames});
-        operators['@meta'] = ++ast['@meta'];
-        ast.operators = operators;
-    }
-
-    if (pipes) {
-        pipes = sx.tokenize(placeholder.pipes, pipes, {sequence: true});
-        pipes['@meta'] = ++ast['@meta'];
-        ast.pipes = pipes;
-    }
-    return {...ast, path};
-};
-
-function rephs(text, meta = 0) {
-    const ast = {source: text, value: null, '@meta': meta};
-    const regex = new RegExp(placeholder.full.source, 'g');
-    const matches = sx.tokenize(regex, text, {$n: false, sequence: true, cgindex: true, cgi0: true});
-
-    if (F.isEmptyValue(matches)) {
-        ast.value = text;
-        return F.reduced(ast);
-    }
-
-    return F.map(reph, F.iterator(matches, {indexed: true, kv: true}));
-}
+// /**
+//  * regex place holder, a.k.a reph parser
+//  *
+//  * NOTE: the source placeholder can be repeated within the template-string, e.g. "{{x.y}} = {{x.y}}"
+//  * reph() would consume one only, effectively optimizing by removing the need to deref twice within the same scope
+//  * later when the dereffed value is replaced in the string, a //g regex is used and would cover all identical occurrences
+//  *
+//  * @param source
+//  * @param operators
+//  * @param path
+//  * @param pipes
+//  * @param meta
+//  * @returns {*}
+//  */
+// const reph = ([source, [[operators] = [], [path] = [], [pipes] = []] = []] = [], meta = 0) => {
+//     const ast = {source, value: null, '@meta': meta};
+//
+//     if (F.isEmptyValue(path)) {
+//         ast.value = source;
+//         return F.reduced(ast);
+//     }
+//
+//     ast['@meta']++;
+//
+//     if (operators) {
+//         operators = sx.tokenize(placeholder.operators, operators, {tokenNames: placeholder.operatorNames});
+//         operators['@meta'] = ++ast['@meta'];
+//         ast.operators = operators;
+//     }
+//
+//     if (pipes) {
+//         pipes = sx.tokenize(placeholder.pipes, pipes, {sequence: true});
+//         pipes['@meta'] = ++ast['@meta'];
+//         ast.pipes = pipes;
+//     }
+//     return {...ast, path};
+// };
+//
+// function rephs(text, meta = 0) {
+//     const ast = {source: text, value: null, '@meta': meta};
+//     const regex = new RegExp(placeholder.full.source, 'g');
+//     const matches = sx.tokenize(regex, text, {$n: false, sequence: true, cgindex: true, cgi0: true});
+//
+//     if (F.isEmptyValue(matches)) {
+//         ast.value = text;
+//         return F.reduced(ast);
+//     }
+//
+//     return F.map(reph, F.iterator(matches, {indexed: true, kv: true}));
+// }
 
 function renderString(node, derefedList) {
     let rendered;
@@ -79,7 +81,7 @@ function renderString(node, derefedList) {
 }
 
 function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}) {
-    const refList = rephs(contextRef.node);
+    const refList = parser.parse(contextRef.node);
     if (F.isReduced(refList)) {
         return {rendered: F.unreduced(refList).value};
     }
@@ -160,7 +162,7 @@ function renderArrayNode(contextRef, options) {
     const NONE = {};
     const isString = x => F.isString(x) ? x : F.reduced(NONE);
     const hasReph0 = x => {
-        const refList = rephs(x);
+        const refList = parser.parse(x);
         return F.isReduced(refList) ? F.reduced(NONE) : refList[0];
     };
 
@@ -191,14 +193,12 @@ function renderArrayNode(contextRef, options) {
 }
 
 module.exports = {
-    reph,
-    rephs,
     renderString,
     renderStringNode,
     renderFunctionExpressionNode,
     renderArrayNode,
     data: {
-        placeholder,
+        placeholder: parser.fullPlaceholderRegex,
         rejectPlaceHolder
     }
 };

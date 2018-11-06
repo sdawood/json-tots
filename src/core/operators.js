@@ -110,14 +110,10 @@ const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
                 $: jp.stringify(context.path)
             };
             // const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
-            console.dir(context);
-            console.log({tag});
             let path = tagHandler[tag];
-            console.log({path});
             if (path === undefined) {
                 path = tag;
             }
-            console.log({path});
             tags[path] = ast.value;
             return {...ast, tag: path};
         }

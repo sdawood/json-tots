@@ -565,7 +565,7 @@ describe('tagging with or without label', () => {
     });
 
     it('sets the tagged values into tags either by label or path', () => {
-        expect(tags).toEqual({"$.a.b.c": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
+        expect(tags).toEqual({"title": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
     });
 
 
