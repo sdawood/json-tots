@@ -117,7 +117,7 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             }
             tags[path] = ast.value;
             sources.tags = tags;
-            return {...ast, tag: path,};
+            return {...ast, tag: path};
         },
         '@': ast => (sources, tag) => {
             // throw new Error('Not Implemented Yet: [symbol(@)]');

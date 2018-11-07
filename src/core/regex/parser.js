@@ -15,7 +15,7 @@ const inception = `(\\.\\*|\\.{2,}|\\.\\d{1,2}|>\\*|>{2,}|>\\d{1,2}|%\\*|%{2,}|%
 const enumeration = `(\\*{1,2})?`;
 const symbol = `(:${SYMBOL}|[#|@]${SYMBOL})?`;
 const constraint = `([!|\\?](?:[=|~]${SYMBOL}(?:${WS}\\:${WS}${SOURCE_NAME})*)?)?`;
-const query = '((?:\\+|\\-)\\d*)?'; // Query Operators	Examples: '{+{a.b.c}}', '{+10{a.b.c}}', '{-10{a.b.c}}'
+const query = '((?:\\+|\\-)\\d*)?';
 
 const operators = `${WS}${inception}${OWS}${enumeration}${OWS}${symbol}${OWS}${constraint}${OWS}${query}${OWS}`;
 const operatorsRegex = new RegExp(operators, 'g'); // consider multi line flag `m`, unicode `u` and sticky `y`
