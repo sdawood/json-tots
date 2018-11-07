@@ -4,7 +4,7 @@ const traverse = require('traverse');
 
 const {transform} = require('./transform');
 
-const original = Object.freeze({
+const document = Object.freeze({
     id: 123,
     title: 'Bicycle 123',
     description: 'Bicycle 123 is a fabulous item that you have to spend all your money on',
@@ -94,17 +94,17 @@ describe('jsonpath deref and string template interpolation', () => {
     };
 
     const expectedResult = {
-        name: `${original.title} [${original.description}] http://items/${original.title}`,
+        name: `${document.title} [${document.description}] http://items/${document.title}`,
         reviews: {
             eula: 'read and agree and let us get on with it',
-            high: original.productReview.fiveStar[0].comment,
-            low: original.productReview.oneStar[0].comment,
-            disclaimer: `Ad: ${original.comment}`,
+            high: document.productReview.fiveStar[0].comment,
+            low: document.productReview.oneStar[0].comment,
+            disclaimer: `Ad: ${document.comment}`,
             version: 10,
             details: null,
             active: true
         },
-        safety: original['Safety.Warning.On.Root'],
+        safety: document['Safety.Warning.On.Root'],
         topRaters: ["user1", "user2", "user3", 10, null, true], // array in template didn't have special semantics
         topTaggers: 'memberUser4 - memberUser5 - memberUser6',
         oneScore: 1,
@@ -116,7 +116,7 @@ describe('jsonpath deref and string template interpolation', () => {
 
     let result;
     const templateClone = traverse(template).clone();
-    const documentClone = traverse(original).clone();
+    const documentClone = traverse(document).clone();
 
     beforeEach(() => {
         result = transform(templateClone)(documentClone);
@@ -127,7 +127,7 @@ describe('jsonpath deref and string template interpolation', () => {
     });
 
     it('does not mutate the source', () => {
-        expect(documentClone).toEqual(original);
+        expect(documentClone).toEqual(document);
     });
 
     it('handles 1..* levels of nesting, and special characters in attribute names', () => {
@@ -156,14 +156,14 @@ describe('simple interpolation with query modifiers with [ NO ] arguments + cons
     };
 
     const expectedResult = {
-        name: `${original.title} [${original.description}] http://items/${original.title}`,
+        name: `${document.title} [${document.description}] http://items/${document.title}`,
         reviews: {
             eula: 'read and agree and let us get on with it',
-            high: original.productReview.fiveStar[0].comment,
-            low: original.productReview.oneStar[0].comment,
-            disclaimer: `Ad: ${original.comment}`
+            high: document.productReview.fiveStar[0].comment,
+            low: document.productReview.oneStar[0].comment,
+            disclaimer: `Ad: ${document.comment}`
         },
-        safety: original['Safety.Warning.On.Root'],
+        safety: document['Safety.Warning.On.Root'],
         topRaters: 'user1 - user2 - user3',
         topTaggers: "memberUser4 - memberUser5 - memberUser6",
         scores: [5, 5, 1],
@@ -175,7 +175,7 @@ describe('simple interpolation with query modifiers with [ NO ] arguments + cons
 
     let result;
     const templateClone = traverse(template).clone();
-    const documentClone = traverse(original).clone();
+    const documentClone = traverse(document).clone();
 
     beforeEach(() => {
         result = transform(templateClone)(documentClone);
@@ -190,7 +190,7 @@ describe('simple interpolation with query modifiers with [ NO ] arguments + cons
     });
 
     it('does not mutate the source', () => {
-        expect(documentClone).toEqual(original);
+        expect(documentClone).toEqual(document);
     });
 });
 
@@ -232,16 +232,16 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        name: `${original.title} [${original.description}] http://items/${original.title}`,
-        // updatedAt: new Date(original.updatedAt),
-        // inStockCount: parseInt(original.inStockCount, 10),
+        name: `${document.title} [${document.description}] http://items/${document.title}`,
+        // updatedAt: new Date(document.updatedAt),
+        // inStockCount: parseInt(document.inStockCount, 10),
         reviews: {
             eula: 'read and agree and let us get on with it',
-            high: original.productReview.fiveStar[0].comment,
-            low: original.productReview.oneStar[0].comment,
-            disclaimer: `Ad: ${original.comment}`
+            high: document.productReview.fiveStar[0].comment,
+            low: document.productReview.oneStar[0].comment,
+            disclaimer: `Ad: ${document.comment}`
         },
-        safety: original['Safety.Warning.On.Root'],
+        safety: document['Safety.Warning.On.Root'],
         topRaters: 'user1 - user2 - user3',
         topTaggers: "memberUser4 - memberUser5 - memberUser6",
         scores: [5, 5],
@@ -269,7 +269,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
 
     let result;
     const templateClone = traverse(template).clone();
-    const documentClone = traverse(original).clone();
+    const documentClone = traverse(document).clone();
 
     beforeEach(() => {
         result = transform(templateClone, {
@@ -289,7 +289,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     });
 
     it('does not mutate the source', () => {
-        expect(documentClone).toEqual(original);
+        expect(documentClone).toEqual(document);
     });
 });
 
@@ -331,17 +331,17 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        name: `${original.title.toUpperCase()} [${original.description}] http://items/${original.title}`,
-        // updatedAt: new Date(original.updatedAt),
-        // inStockCount: parseInt(original.inStockCount, 10),
+        name: `${document.title.toUpperCase()} [${document.description}] http://items/${document.title}`,
+        // updatedAt: new Date(document.updatedAt),
+        // inStockCount: parseInt(document.inStockCount, 10),
         reviews: {
             eula: 'read and agree and let us get on with it',
             high:
-            original.productReview.fiveStar[0].comment,
+            document.productReview.fiveStar[0].comment,
             low:
-            original.productReview.oneStar[0].comment,
+            document.productReview.oneStar[0].comment,
             disclaimer:
-                `Ad: ${original.comment}`
+                `Ad: ${document.comment}`
         },
         expensive: true,
         safety: "Always wear ...",
@@ -393,7 +393,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
 
     let result;
     const templateClone = traverse(template).clone();
-    const documentClone = traverse(original).clone();
+    const documentClone = traverse(document).clone();
 
     beforeEach(() => {
         result = transform(templateClone, {
@@ -416,7 +416,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     });
 
     it('does not mutate the source', () => {
-        expect(documentClone).toEqual(original);
+        expect(documentClone).toEqual(document);
     });
 });
 
@@ -463,15 +463,15 @@ describe('inception, apply first element as `document` to n successor array elem
         "views": ["[front](2)", "[rear](2)", "[side](2)"],
         "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
         "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"],
-        "recursive3": [original.productReview.fiveStar[1].comment, original.description],
-        "recursive2": [original.productReview.fiveStar[1], original.comment, original.description]
+        "recursive3": [document.productReview.fiveStar[1].comment, document.description],
+        "recursive2": [document.productReview.fiveStar[1], document.comment, document.description]
     };
 
     let result;
     const templateClone = traverse(template).clone();
 
     beforeEach(() => {
-        result = transform(templateClone)(original);
+        result = transform(templateClone)(document);
     });
 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
@@ -528,7 +528,7 @@ describe('flatten and doubleFlatten pipes`} | * | ** }`', () => {
     const templateClone = traverse(template).clone();
 
     beforeEach(() => {
-        result = transform(templateClone)(original);
+        result = transform(templateClone)(document);
     });
 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
@@ -557,7 +557,7 @@ describe('tagging with or without label', () => {
     const tags = {};
 
     beforeEach(() => {
-        result = transform(templateClone, {tags})(original);
+        result = transform(templateClone, {tags})(document);
     });
 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
@@ -565,7 +565,7 @@ describe('tagging with or without label', () => {
     });
 
     it('sets the tagged values into tags either by label or path', () => {
-        expect(tags).toEqual({"$.a.b.c": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
+        expect(tags).toEqual({"title": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
     });
 
 
@@ -625,7 +625,7 @@ describe('@function expression node, with pipes and args node', () => {
     const templateClone = traverse(template).clone();
 
     beforeEach(() => {
-        result = transform(templateClone, {functions: {now, since, stock, uuid, gte, echoArgs}, args})(original);
+        result = transform(templateClone, {functions: {now, since, stock, uuid, gte, echoArgs}, args})(document);
     });
 
     it('renders each array elements using the nested template, supporting straightforward enumeration', () => {
@@ -634,5 +634,138 @@ describe('@function expression node, with pipes and args node', () => {
 
     it('does not mutate the template', () => {
         expect(templateClone).toEqual(template);
+    });
+});
+
+describe('scenario: tags string-templates into tags mapping', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        f: ['{ # {price}}']
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47"
+    };
+
+    it('works: inserts tags as keys into the tags mapping with dereferences value as value and contextRef as ctx', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500]
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        g: '{#{color[0]}}',
+        i: '{@color[0]{$}} from {{id}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "Red from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        g: '{#{color[0]}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        f: ['{ # {price}}'],
+        g: '{#{color[0]}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": "{\"@@slyd/value\":\"{@price{$}}\",\"@@syd/defered\":1}",
+            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
     });
 });

@@ -5,6 +5,7 @@
 /* eslint-disable no-useless-escape */
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
+const Fb = require('./times');
 const bins = require('./builtins');
 const sx = require('./strings');
 
@@ -96,24 +97,47 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
     sources
 }), bins.has('$.operators.constraints'));
 
-const symbol = ({tags, context}) => (ast, {meta = 2} = {}) => {
+const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
         },
-        '#': ast => tag => {
-            const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
+        '#': ast => (sources, tag) => {
+            tag = tag.trim();
+            const tagHandler = {
+                undefined: ast.path,
+                null: ast.path,
+                '': ast.path,
+                $: jp.stringify(context.path)
+            };
+            // const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
+            let path = tagHandler[tag];
+            if (path === undefined) {
+                path = tag;
+            }
             tags[path] = ast.value;
+            sources.tags = tags;
             return {...ast, tag: path};
+        },
+        '@': ast => (sources, tag) => {
+            // throw new Error('Not Implemented Yet: [symbol(@)]');
+            const ctx = tags[tag];
+            sources.tags[tag] = sources.tags[tag] || {};
+            // Path rewrite
+            ast.path = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
+            ast.path = `${tag}${ast.path[0] === '[' ? '' : ast.path ? '.' : ''}${ast.path}`;
+            // Path rewrite
+            ast.value = F.isEmptyValue(ctx) ? JSON.stringify(Fb.defered(ast.source), null, 0) : ctx;
+            return F.reduced({...ast, from: sources['tags']});
         }
     };
 
     const [op, ...tag] = ast.operators.symbol;
-    const result = ops[op](ast)(tag.join('').trim());
+    const result = ops[op](ast)(sources, tag.join('').trim());
     return {...result, '@meta': meta};
 };
 
-const symbolOperator = ({tags, context}) => F.composes(symbol({tags, context}), bins.has('$.operators.symbol'));
+const symbolOperator = ({tags, context, sources}) => F.composes(symbol({tags, context, sources}), bins.has('$.operators.symbol'));
 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
@@ -156,7 +180,6 @@ const parseTextArgs = (...args) => {
 };
 
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
-    // console.log('INSIDE PIPE OPERATOR')
     /*
     * example: pipes: { '$1': 'toInt', '$2': 'isEven', '$3': '**', @meta': 3 }
     */
@@ -214,7 +237,7 @@ const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.
 const applyAll = ({meta, sources, tags, functions, context, config}) => F.composes(
     pipeOperator({functions}),
     enumerateOperator,
-    symbolOperator({tags, context}),
+    symbolOperator({tags, context, sources}),
     constraintsOperator({sources, config}),
     query,
     deref(sources)
