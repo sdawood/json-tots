@@ -21,6 +21,14 @@ json-tots supports:
 
 **Try it out `online`** [here](https://npm.runkit.com/json-tots)
 
+### 2.0.0 (2018-11-07)
+#### Features
+- #tag, # (template-string-path) #$ (leaf-path): Tag with a string-tag, current template-string (f19412d)
+- insertion order sensitve self back-refernece: a later tag-reference can successfully deref an (c831c32)
+#### BREAKING CHANGES
+- #tag, # (template-string-path) #$ (leaf-path): Refined tagging syntax for # without a string tag
+
+See [tests](src/transform.spec.js) for examples
 
 Usage:
 
