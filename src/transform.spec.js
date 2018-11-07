@@ -645,7 +645,13 @@ describe('scenario: tags string-templates into tags mapping', () => {
     };
 
     const tags = {};
-    const expectedTags = {"$.a": 123, "$.b.e": "Brand-Company C", "price": 500, "title": "Bicycle 123", "updatedAt": "2017-10-13T10:37:47"};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47"
+    };
 
     it('works: inserts tags as keys into the tags mapping with dereferences value as value and contextRef as ctx', () => {
         const result = transform(template, {tags})(document);
@@ -662,19 +668,104 @@ describe('scenario: tags string-templates into tags mapping', () => {
 describe('scenario: self refernce staged transform', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
         h: '{@price{$}}',
         b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
-        i: '{@tags{$.hot}} from {@.a{$}}',
-        f: ['{ # {price}}'],
-        g: '{#{tags}}'
+        g: '{#{color[0]}}',
+        i: '{@color[0]{$}} from {{id}}'
     };
 
     const tags = {};
-    const expectedTags = {"$.a": 123, "$.b.e": "Brand-Company C", "price": 500, "title": "Bicycle 123", "updatedAt": "2017-10-13T10:37:47"};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
 
-    it.skip('works: ', () => {
+    it('works: ', () => {
         const result = transform(template, {tags})(document);
-        const expectedResult = {};
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "Red from 123"
+        };
         expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        g: '{#{color[0]}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self refernce staged transform', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        f: ['{ # {price}}'],
+        g: '{#{color[0]}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": "{\"@@slyd/value\":\"{@price{$}}\",\"@@syd/defered\":1}",
+            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
     });
 });

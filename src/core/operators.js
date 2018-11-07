@@ -5,6 +5,7 @@
 /* eslint-disable no-useless-escape */
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
+const Fb = require('./times');
 const bins = require('./builtins');
 const sx = require('./strings');
 
@@ -116,13 +117,18 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             }
             tags[path] = ast.value;
             sources.tags = tags;
-            return {...ast, tag: path};
+            return {...ast, tag: path,};
         },
         '@': ast => (sources, tag) => {
             // throw new Error('Not Implemented Yet: [symbol(@)]');
             const ctx = tags[tag];
-            ast.value = deref(sources)(ast, {source: 'tags'});
-            return {...ast, from: sources['tags']};
+            sources.tags[tag] = sources.tags[tag] || {};
+            // Path rewrite
+            ast.path = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
+            ast.path = `${tag}${ast.path[0] === '[' ? '' : ast.path ? '.' : ''}${ast.path}`;
+            // Path rewrite
+            ast.value = F.isEmptyValue(ctx) ? JSON.stringify(Fb.defered(ast.source), null, 0) : ctx;
+            return F.reduced({...ast, from: sources['tags']});
         }
     };
 
@@ -174,7 +180,6 @@ const parseTextArgs = (...args) => {
 };
 
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
-    // console.log('INSIDE PIPE OPERATOR')
     /*
     * example: pipes: { '$1': 'toInt', '$2': 'isEven', '$3': '**', @meta': 3 }
     */

@@ -5,6 +5,7 @@ const F = require('functional-pipelines');
 const sx = require('./strings');
 const operators = require('./operators');
 
+const Fb = require('./times');
 const parser = require('./regex/parser');
 
 const rejectPlaceHolder = {open: '{!!{', close: '}!!}'};
@@ -115,9 +116,7 @@ function renderArrayNode(contextRef, options) {
         when: stickyWhen,
         recharge: false
     })(partitionFn), contextRef.node);
-
-    // console.log([...partitionedGen].map(it => ({metadata: it.metadata(), data: JSON.stringify([...it])})));
-
+    
     const {transform} = require('../transform'); // lazy require to break cyclic dependency
     const lols = F.map(
         iter => iter.metadata().$depth ? transduception(iter, options) : F.map(item => transform(item, options)(options.sources.origin), iter),
