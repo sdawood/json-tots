@@ -295,11 +295,11 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
             const rest = [...enumerable];
             if (rest.length === 1) {
                 // no zip align, apply the rest-template for-each value in document
-                return F.map(documentItem => transform(rest[0])(documentItem), scopedDocument);
+                return F.map(documentItem => transform(rest[0], options)(documentItem), scopedDocument);
             } else {
                 // zip-align
                 const pairsIter = F.zip(rest, scopedDocument);
-                return F.map(([template, document]) => transform(template)(document), pairsIter);
+                return F.map(([template, document]) => transform(template, options)(document), pairsIter);
             }
         }
     };
