@@ -722,13 +722,29 @@ describe('scenario: self reference staged transform 2', () => {
 
     it('works: ', () => {
         const result = transform(template, {tags})(document);
+        // const expectedResult = {
+        //     "a": "123 Bicycle 123",
+        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        //     "f": [500],
+        //     "g": "Red",
+        //     "h": 500,
+        //     "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123"
+        // };
+        // const expectedResult = {
+        //     "a": "123 Bicycle 123",
+        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        //     "f": [500],
+        //     "g": "Red",
+        //     "h": 500,
+        //     "i": "{@color[0]{$}} from 123"
+        // };
         const expectedResult = {
             "a": "123 Bicycle 123",
             "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
             "h": 500,
-            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123"
+            "i": "Red from 123"
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
@@ -736,6 +752,46 @@ describe('scenario: self reference staged transform 2', () => {
 });
 
 describe('scenario: self reference staged transform 3', () => {
+    const template = {
+        "a": "123 Bicycle 123",
+        "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        "f": [500],
+        "g": "Red",
+        "h": "{@price{$}}",
+        "i": "{@color[0]{$}} from 123",
+        "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        "z": "2016MMDDHHmmssSSS"
+    };
+
+    const sources = {'@@dirty': false};
+    const tags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "color[0]": "Red",
+        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {sources, tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "Red from 123",
+            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+            "z": "2016MMDDHHmmssSSS"
+        };
+        expect(result).toEqual(expectedResult);
+    });
+});
+
+
+describe('scenario: self reference staged transform 4', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         h: '{@price{$}}',
@@ -748,6 +804,7 @@ describe('scenario: self reference staged transform 3', () => {
     };
 
     const tags = {};
+    const sources = {'@@dirty': false};
     const expectedTags = {
         "$.a": 123,
         "$.b.e": "Brand-Company C",
@@ -759,14 +816,24 @@ describe('scenario: self reference staged transform 3', () => {
     };
 
     it('works: ', () => {
-        const result = transform(template, {tags})(document);
+        const result = transform(template, {sources, tags})(document);
+        // const expectedResult = {
+        //     "a": "123 Bicycle 123",
+        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        //     "f": [500],
+        //     "g": "Red",
+        //     "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
+        //     "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
+        //     "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        //     "z": "2016MMDDHHmmssSSS"
+        // };
         const expectedResult = {
             "a": "123 Bicycle 123",
             "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
-            "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
-            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
+            "h": "{@price{$}}",
+            "i": "{@color[0]{$}} from 123",
             "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
             "z": "2016MMDDHHmmssSSS"
         };

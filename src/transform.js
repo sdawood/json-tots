@@ -31,7 +31,7 @@ const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: re
  * @param builtins A map of builtin functions, defaults to ./core/builtins.js functions
  * @returns {function(*=): *}
  */
-const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig, stages = []} = {}, {builtins = bins} = {}) => document => {
+const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     let result;
 
     functions = {...bins, ...functions};
@@ -42,8 +42,7 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
         tags,
         functions,
         args,
-        config,
-        stages
+        config
     };
 
     if (F.isString(template)) {
@@ -89,6 +88,14 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
                 self.update(rendered);
             }
         });
+    }
+
+    if (sources['@@dirty']) {
+        console.log(JSON.stringify({tags: options.tags}));
+        sources['@@dirty'] = false;
+        console.log(JSON.stringify({result}));
+        result = transform(result, {...options, sources}, builtins)(document);
+        console.log(JSON.stringify({result}));
     }
 
     return result;

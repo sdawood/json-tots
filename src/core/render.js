@@ -21,7 +21,7 @@ function renderString(node, derefedList) {
     return rendered;
 }
 
-function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config, stages} = {}) {
+function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}) {
     const refList = parser.parse(contextRef.node);
     if (F.isReduced(refList)) {
         return {rendered: F.unreduced(refList).value};
@@ -33,8 +33,7 @@ function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags
         tags,
         functions,
         context: contextRef,
-        config,
-        stages
+        config
     }), refList);
     const rendered = renderString(contextRef.node, derefedList);
     return {rendered, asts: derefedList};
