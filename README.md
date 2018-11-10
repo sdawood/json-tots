@@ -190,8 +190,10 @@ json-tots Template String                      | Description
 `!=<sourceName>`| If value is missing, look it up in alternate source (`sources[<sourceName>]`) if provided, if missing from default source, value would be set to `null` in rendered result
 `!=<sourceName>:<DEFAULT_VALUE>`| If value is missing, look it up in alternate source (`sources[<sourceName>]`) if provided; if missing from alternate source, use the `<DEFAULT_VALUE>` provided `inline`
 **Symbol Operator**| Examples: `'{#myTagName{a.b.c}}'`
-`#`| Adds the value to the `tags` mapping if provided, the current JSON node's path is used as `key`
+`#`| Adds the value to the `tags` mapping if provided, the current JSON node's template-string {{`path`}} is used as `key`
+`#$`| Adds the value to the `tags` mapping if provided, the current JSON node's `template-path` is used as `key`
 `#<LABEL>`| Adds the value to the `tags` mapping if provided, the tag string is used as `key`. Enables `self-referencing` templates in coming version.
+`@Tag\|node-path\|template-string-path`| dereference the prevoius tag {@tag{path-inside-tag or $}}. In case the tag is not yet known, a deferred value is added, e.g. "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1}, left for your reference and future post-processing in next stages
 `:`| `RESERVED`
 `:<LABEL>`| `RESERVED`
 **Enumeration Operators**| Examples: `'{*{a.b.c}}', '{**{a.b.c}}'`
@@ -487,6 +489,50 @@ For now, there are a couple of elegant options (until the root cause is eliminat
 Note: this is an edge case that you should rarely run into, documented to spare you hours of debugging. The right solution is to safely traverse and guard against Array splicing while iterating over its children. Remember that `undefined` wouldn't have survived JSON serialization anyhow.
 
 Makes you wish that `Immutable` data structures are used everywhere, which is at top of the roadmap priorities.
+
+### #Tag and @Tag dereference example
+```js
+describe('scenario: self reference staged transform 3', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        f: ['{ # {price}}'],
+        g: '{#{color[0]}}',
+        x: '{#hotTags{tags.hot}}',
+        z: '{@hotTags{timestamp}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "color[0]": "Red",
+        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47"
+    };
+
+    it('works: ', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
+            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
+            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+            "z": "2016MMDDHHmmssSSS"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+```
 
 For more examples please check `transform.spec.js` in the code repository.
 
