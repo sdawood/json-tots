@@ -31,7 +31,7 @@ const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: re
  * @param builtins A map of builtin functions, defaults to ./core/builtins.js functions
  * @returns {function(*=): *}
  */
-const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig, stages = []} = {}, {builtins = bins} = {}) => document => {
     let result;
 
     functions = {...bins, ...functions};
@@ -42,7 +42,8 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
         tags,
         functions,
         args,
-        config
+        config,
+        stages
     };
 
     if (F.isString(template)) {

@@ -97,7 +97,7 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
     sources
 }), bins.has('$.operators.constraints'));
 
-const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
+const symbol = ({tags, context, sources, stages}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
@@ -110,7 +110,6 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
                 '': ast.path,
                 $: jp.stringify(context.path)
             };
-            // const path = F.isEmptyValue(tag) ? jp.stringify(context.path) : tag;
             let path = tagHandler[tag];
             if (path === undefined) {
                 path = tag;
@@ -125,9 +124,19 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             sources.tags[tag] = sources.tags[tag] || {};
             // Path rewrite
             ast.path = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
-            ast.path = `${tag}${ast.path[0] === '[' ? '' : ast.path ? '.' : ''}${ast.path}`;
+            ast.path = `${tag}${ast.path[0] === '[' ? '' : ast.path[0] ? '.' : ''}${ast.path === '$' ? '' : ast.path}`;
             // Path rewrite
-            ast.value = F.isEmptyValue(ctx) ? JSON.stringify(Fb.defered(ast.source), null, 0) : ctx;
+            let value;
+            if (F.isEmptyValue(ctx)) {
+                value = JSON.stringify(Fb.defered(ast.source), null, 0);
+                stages[tags] = stages[tags] || {};
+                stages[tags][tag] = {templatePath: jp.stringify(context.path), value};
+            } else {
+                // value = JSON.stringify({ ctx, path: ast.path, value: jp.value(tags, jpify(ast.path))}, null, 0);
+                value = jp.value(tags, jpify(ast.path)) || ctx;
+            }
+
+            ast.value = value;
             return F.reduced({...ast, from: sources['tags']});
         }
     };
@@ -137,7 +146,12 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     return {...result, '@meta': meta};
 };
 
-const symbolOperator = ({tags, context, sources}) => F.composes(symbol({tags, context, sources}), bins.has('$.operators.symbol'));
+const symbolOperator = ({tags, context, sources, stages}) => F.composes(symbol({
+    tags,
+    context,
+    sources,
+    stages
+}), bins.has('$.operators.symbol'));
 
 const enumerate = (ast, {meta = 4} = {}) => {
     const ops = {
@@ -234,10 +248,10 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
 
 const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.pipes'));
 
-const applyAll = ({meta, sources, tags, functions, context, config}) => F.composes(
+const applyAll = ({meta, sources, tags, functions, context, config, stages}) => F.composes(
     pipeOperator({functions}),
     enumerateOperator,
-    symbolOperator({tags, context, sources}),
+    symbolOperator({tags, context, sources, stages}),
     constraintsOperator({sources, config}),
     query,
     deref(sources)

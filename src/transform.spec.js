@@ -665,7 +665,7 @@ describe('scenario: tags string-templates into tags mapping', () => {
     });
 });
 
-describe('scenario: self refernce staged transform', () => {
+describe('scenario: self reference staged transform 1', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         f: ['{ # {price}}'],
@@ -700,7 +700,7 @@ describe('scenario: self refernce staged transform', () => {
     });
 });
 
-describe('scenario: self refernce staged transform', () => {
+describe('scenario: self reference staged transform 2', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         f: ['{ # {price}}'],
@@ -728,31 +728,34 @@ describe('scenario: self refernce staged transform', () => {
             "f": [500],
             "g": "Red",
             "h": 500,
-            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123"
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
     });
 });
 
-describe('scenario: self refernce staged transform', () => {
+describe('scenario: self reference staged transform 3', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         h: '{@price{$}}',
         b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         i: '{@color[0]{$}} from {{id}}',
         f: ['{ # {price}}'],
-        g: '{#{color[0]}}'
+        g: '{#{color[0]}}',
+        x: '{#hotTags{tags.hot}}',
+        z: '{@hotTags{timestamp}}'
     };
 
     const tags = {};
     const expectedTags = {
         "$.a": 123,
         "$.b.e": "Brand-Company C",
+        "color[0]": "Red",
+        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
         "price": 500,
         "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47",
-        "color[0]": "Red"
+        "updatedAt": "2017-10-13T10:37:47"
     };
 
     it('works: ', () => {
@@ -762,8 +765,10 @@ describe('scenario: self refernce staged transform', () => {
             "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
-            "h": "{\"@@slyd/value\":\"{@price{$}}\",\"@@syd/defered\":1}",
-            "i": "{\"@@slyd/value\":\"{@color[0]{$}}\",\"@@syd/defered\":1} from 123"
+            "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
+            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
+            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+            "z": "2016MMDDHHmmssSSS"
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
