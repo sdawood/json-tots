@@ -193,7 +193,7 @@ json-tots Template String                      | Description
 `#`| Adds the value to the `tags` mapping if provided, the current JSON node's template-string {{`path`}} is used as `key`
 `#$`| Adds the value to the `tags` mapping if provided, the current JSON node's `template-path` is used as `key`
 `#<LABEL>`| Adds the value to the `tags` mapping if provided, the tag string is used as `key`. Enables `self-referencing` templates in coming version.
-`@Tag\|node-path\|template-string-path`| dereference the prevoius tag {@tag{path-inside-tag or $}}. In case the tag is not yet known, a deferred value is added, e.g. "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1}, left for your reference and future post-processing in next stages
+`@Tag\|node-path\|template-string-path`| dereference the prevoius tag {@tag{path-inside-tag or $}}. In case the tag is not yet known, a deferred value is pushed to sources['@@next'] array, which can be used to re-render the result in a number of straight forward ways, e.g. {"path": "$.h","source": "{@price{$}}","tag": "price","tagPath": "price","templatePath": "$"}, left for your reference and future post-processing in next stages
 `:`| `RESERVED`
 `:<LABEL>`| `RESERVED`
 **Enumeration Operators**| Examples: `'{*{a.b.c}}', '{**{a.b.c}}'`
@@ -492,11 +492,121 @@ Makes you wish that `Immutable` data structures are used everywhere, which is at
 
 ### #Tag and @Tag dereference example
 ```js
+describe('scenario: self reference staged transform 1', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        g: '{#{color[0]}}',
+        i: '{@color[0]{$}} from {{id}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: 1', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "Red from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
+describe('scenario: self reference staged transform 2', () => {
+    const template = {
+        a: '{ #$ {id}} { # {title}}',
+        f: ['{ # {price}}'],
+        h: '{@price{$}}',
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        i: '{@color[0]{$}} from {{id}}',
+        g: '{#{color[0]}}'
+    };
+
+    const tags = {};
+    const expectedTags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47",
+        "color[0]": "Red"
+    };
+
+    it('works: 2', () => {
+        const result = transform(template, {tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "{@color[0]{$}} from 123"
+        };
+        expect(result).toEqual(expectedResult);
+        expect(tags).toEqual(expectedTags);
+    });
+});
+
 describe('scenario: self reference staged transform 3', () => {
+    const template = {
+        "a": "123 Bicycle 123",
+        "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        "f": [500],
+        "g": "Red",
+        "h": "{@price{$}}",
+        "i": "{@color[0]{$}} from 123",
+        "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        "z": "2016MMDDHHmmssSSS"
+    };
+
+    const sources = {'@@next': []};
+    const tags = {
+        "$.a": 123,
+        "$.b.e": "Brand-Company C",
+        "color[0]": "Red",
+        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+        "price": 500,
+        "title": "Bicycle 123",
+        "updatedAt": "2017-10-13T10:37:47"
+    };
+
+    it('works: 3', () => {
+        const result = transform(template, {sources, tags})(document);
+        const expectedResult = {
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": 500,
+            "i": "Red from 123",
+            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+            "z": "2016MMDDHHmmssSSS"
+        };
+        expect(result).toEqual(expectedResult);
+    });
+});
+
+
+describe('scenario: self reference staged transform 4', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         h: '{@price{$}}',
-        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         i: '{@color[0]{$}} from {{id}}',
         f: ['{ # {price}}'],
         g: '{#{color[0]}}',
@@ -505,6 +615,7 @@ describe('scenario: self reference staged transform 3', () => {
     };
 
     const tags = {};
+    const sources = {'@@next': []};
     const expectedTags = {
         "$.a": 123,
         "$.b.e": "Brand-Company C",
@@ -515,20 +626,36 @@ describe('scenario: self reference staged transform 3', () => {
         "updatedAt": "2017-10-13T10:37:47"
     };
 
-    it('works: ', () => {
-        const result = transform(template, {tags})(document);
+    it('works: 4', () => {
+        const result = transform(template, {sources, tags})(document);
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
-            "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
-            "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
+            "h": "{@price{$}}",
+            "i": "{@color[0]{$}} from 123",
             "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
             "z": "2016MMDDHHmmssSSS"
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
+        expect(sources['@@next']).toEqual([
+            {
+                "path": "$.h",
+                "source": "{@price{$}}",
+                "tag": "price",
+                "tagPath": "price",
+                "templatePath": "$"
+            },
+            {
+                "path": "$.i",
+                "source": "{@color[0]{$}}",
+                "tag": "color[0]",
+                "tagPath": "color[0]",
+                "templatePath": "$"
+            }]
+        );
     });
 });
 

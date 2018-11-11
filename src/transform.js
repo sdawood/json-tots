@@ -90,20 +90,21 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
         });
     }
 
-    if (sources['@@dirty']) {
-        console.log(JSON.stringify({tags: options.tags}));
-        sources['@@dirty'] = false;
-        console.log(JSON.stringify({result}));
-        result = transform(result, {...options, sources}, builtins)(document);
-        console.log(JSON.stringify({result}));
-    }
-
     return result;
 };
 
+const rerenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+    return F.reduce((template, {path, tag, source, templatePath, tagPath}) => {
+        const value = jp.value(tags, tagPath);
+        jp.value(template, path, value);
+        return template;
+    }, () => (template), sources['@@next']);
+
+};
 
 module.exports = {
     transform,
+    rerenderTags,
     data: {
         ...renderData,
         defaultConfig

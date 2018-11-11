@@ -97,7 +97,7 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
     sources
 }), bins.has('$.operators.constraints'));
 
-const symbol = ({tags, context, sources, flags}) => (ast, {meta = 2} = {}) => {
+const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => {
             throw new Error('Not Implemented Yet: [symbol(:)]');
@@ -123,16 +123,18 @@ const symbol = ({tags, context, sources, flags}) => (ast, {meta = 2} = {}) => {
             const ctx = tags[tag];
             // sources.tags[tag] = sources.tags[tag] || {};
             // Path rewrite
-            ast.path = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
-            ast.path = `${tag}${ast.path[0] === '[' ? '' : ast.path[0] ? '.' : ''}${ast.path === '$' ? '' : ast.path}`;
+            const relativeTagPath = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
+            const tagPath = `${tag}${relativeTagPath[0] === '[' ? '' : relativeTagPath[0] ? '.' : ''}${relativeTagPath === '$' ? '' : relativeTagPath}`;
             // Path rewrite
             let value;
             if (F.isEmptyValue(ctx)) {
                 value = ast.source;
-                sources['@@dirty'] = true;
+                sources['@@next'] = sources['@@next'] || [];
+                const token = {path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
+                sources['@@next'].push(token);
             } else {
                 // value = JSON.stringify({ ctx, path: ast.path, value: jp.value(tags, jpify(ast.path))}, null, 0);
-                value = jp.value(tags, jpify(ast.path)) || ctx;
+                value = jp.value(tags, jpify(tagPath)) || ctx;
             }
 
             ast.value = value;

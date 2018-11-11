@@ -640,7 +640,7 @@ describe('@function expression node, with pipes and args node', () => {
 describe('scenario: tags string-templates into tags mapping', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
-        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         f: ['{ # {price}}']
     };
 
@@ -657,7 +657,7 @@ describe('scenario: tags string-templates into tags mapping', () => {
         const result = transform(template, {tags})(document);
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500]
         };
         expect(result).toEqual(expectedResult);
@@ -670,7 +670,7 @@ describe('scenario: self reference staged transform 1', () => {
         a: '{ #$ {id}} { # {title}}',
         f: ['{ # {price}}'],
         h: '{@price{$}}',
-        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         g: '{#{color[0]}}',
         i: '{@color[0]{$}} from {{id}}'
     };
@@ -685,11 +685,11 @@ describe('scenario: self reference staged transform 1', () => {
         "color[0]": "Red"
     };
 
-    it('works: ', () => {
+    it('works: 1', () => {
         const result = transform(template, {tags})(document);
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
             "h": 500,
@@ -705,7 +705,7 @@ describe('scenario: self reference staged transform 2', () => {
         a: '{ #$ {id}} { # {title}}',
         f: ['{ # {price}}'],
         h: '{@price{$}}',
-        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         i: '{@color[0]{$}} from {{id}}',
         g: '{#{color[0]}}'
     };
@@ -720,31 +720,15 @@ describe('scenario: self reference staged transform 2', () => {
         "color[0]": "Red"
     };
 
-    it('works: ', () => {
+    it('works: 2', () => {
         const result = transform(template, {tags})(document);
-        // const expectedResult = {
-        //     "a": "123 Bicycle 123",
-        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-        //     "f": [500],
-        //     "g": "Red",
-        //     "h": 500,
-        //     "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123"
-        // };
-        // const expectedResult = {
-        //     "a": "123 Bicycle 123",
-        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-        //     "f": [500],
-        //     "g": "Red",
-        //     "h": 500,
-        //     "i": "{@color[0]{$}} from 123"
-        // };
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
             "h": 500,
-            "i": "Red from 123"
+            "i": "{@color[0]{$}} from 123"
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
@@ -754,7 +738,7 @@ describe('scenario: self reference staged transform 2', () => {
 describe('scenario: self reference staged transform 3', () => {
     const template = {
         "a": "123 Bicycle 123",
-        "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+        "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
         "f": [500],
         "g": "Red",
         "h": "{@price{$}}",
@@ -763,7 +747,7 @@ describe('scenario: self reference staged transform 3', () => {
         "z": "2016MMDDHHmmssSSS"
     };
 
-    const sources = {'@@dirty': false};
+    const sources = {'@@next': []};
     const tags = {
         "$.a": 123,
         "$.b.e": "Brand-Company C",
@@ -774,11 +758,11 @@ describe('scenario: self reference staged transform 3', () => {
         "updatedAt": "2017-10-13T10:37:47"
     };
 
-    it('works: ', () => {
+    it('works: 3', () => {
         const result = transform(template, {sources, tags})(document);
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
             "h": 500,
@@ -795,7 +779,7 @@ describe('scenario: self reference staged transform 4', () => {
     const template = {
         a: '{ #$ {id}} { # {title}}',
         h: '{@price{$}}',
-        b: {c: '{ #updatedAt {updatedAt}} is equivalient to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
+        b: {c: '{ #updatedAt {updatedAt}} is equivalent to', d: '{ # {updatedAt}}', e: '{ #$ {brand}}'},
         i: '{@color[0]{$}} from {{id}}',
         f: ['{ # {price}}'],
         g: '{#{color[0]}}',
@@ -804,7 +788,7 @@ describe('scenario: self reference staged transform 4', () => {
     };
 
     const tags = {};
-    const sources = {'@@dirty': false};
+    const sources = {'@@next': []};
     const expectedTags = {
         "$.a": 123,
         "$.b.e": "Brand-Company C",
@@ -815,21 +799,11 @@ describe('scenario: self reference staged transform 4', () => {
         "updatedAt": "2017-10-13T10:37:47"
     };
 
-    it('works: ', () => {
+    it('works: 4', () => {
         const result = transform(template, {sources, tags})(document);
-        // const expectedResult = {
-        //     "a": "123 Bicycle 123",
-        //     "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-        //     "f": [500],
-        //     "g": "Red",
-        //     "h": "{\"@@tots/value\":\"{@price{$}}\",\"@@tots/defered\":1}",
-        //     "i": "{\"@@tots/value\":\"{@color[0]{$}}\",\"@@tots/defered\":1} from 123",
-        //     "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-        //     "z": "2016MMDDHHmmssSSS"
-        // };
         const expectedResult = {
             "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalient to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
             "f": [500],
             "g": "Red",
             "h": "{@price{$}}",
@@ -839,5 +813,21 @@ describe('scenario: self reference staged transform 4', () => {
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
+        expect(sources['@@next']).toEqual([
+            {
+                "path": "$.h",
+                "source": "{@price{$}}",
+                "tag": "price",
+                "tagPath": "price",
+                "templatePath": "$"
+            },
+            {
+                "path": "$.i",
+                "source": "{@color[0]{$}}",
+                "tag": "color[0]",
+                "tagPath": "color[0]",
+                "templatePath": "$"
+            }]
+        );
     });
 });
