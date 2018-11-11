@@ -2,7 +2,7 @@ const jp = require('jsonpath');
 const F = require('functional-pipelines');
 const traverse = require('traverse');
 
-const {transform} = require('./transform');
+const {transform, reRenderTags} = require('./transform');
 
 const document = Object.freeze({
     id: 123,
@@ -829,5 +829,17 @@ describe('scenario: self reference staged transform 4', () => {
                 "templatePath": "$"
             }]
         );
+
+        const final = reRenderTags(result, {tags, sources})(document);
+        expect(final).toEqual({
+            "a": "123 Bicycle 123",
+            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
+            "f": [500],
+            "g": "Red",
+            "h": "500",
+            "i": "Red from 123",
+            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
+            "z": "2016MMDDHHmmssSSS"
+        });
     });
 });

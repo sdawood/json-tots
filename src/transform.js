@@ -93,10 +93,11 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
     return result;
 };
 
-const rerenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+const reRenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     return F.reduce((template, {path, tag, source, templatePath, tagPath}) => {
-        const value = jp.value(tags, tagPath);
-        jp.value(template, path, value);
+        const value = tags[tagPath];
+        const rendered = jp.value(template, path).replace(source, value);
+        jp.value(template, path, rendered);
         return template;
     }, () => (template), sources['@@next']);
 
@@ -104,7 +105,7 @@ const rerenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {},
 
 module.exports = {
     transform,
-    rerenderTags,
+    reRenderTags,
     data: {
         ...renderData,
         defaultConfig
