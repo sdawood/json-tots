@@ -75,7 +75,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
             result = result.value !== undefined ? result : (
                 defaultValue !== undefined ? {
                     ...result,
-                    value: defaultValue
+                    value: parseTextArgs(defaultValue).pop() // @TODO: check why it converts to string even if it's standalone
                 } : {
                     ...result, value: null
                 }
@@ -99,8 +99,13 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
 
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
-        ':': ast => {
-            throw new Error('Not Implemented Yet: [symbol(:)]');
+        ':': ast => (sources, tag) => {
+            sources['@@next'] = sources['@@next'] || [];
+            console.log({policyName: tag});
+            const job = {type: '@@policy', path: jp.stringify(context.path), tag: tag, source: ast.source, templatePath: '', tagPath: ast.path};
+            console.log(JSON.stringify(job));
+            sources['@@next'].push(job);
+            return {...ast, policy: tag};
         },
         '#': ast => (sources, tag) => {
             tag = tag.trim();
@@ -119,9 +124,7 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             return {...ast, tag: path};
         },
         '@': ast => (sources, tag) => {
-            // throw new Error('Not Implemented Yet: [symbol(@)]');
             const ctx = tags[tag];
-            // sources.tags[tag] = sources.tags[tag] || {};
             // Path rewrite
             const relativeTagPath = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
             const tagPath = `${tag}${relativeTagPath[0] === '[' ? '' : relativeTagPath[0] ? '.' : ''}${relativeTagPath === '$' ? '' : relativeTagPath}`;
@@ -130,8 +133,8 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             if (F.isEmptyValue(ctx)) {
                 value = ast.source;
                 sources['@@next'] = sources['@@next'] || [];
-                const token = {path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
-                sources['@@next'].push(token);
+                const job = {type: '@@tag', path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
+                sources['@@next'].unshift(job);
             } else {
                 // value = JSON.stringify({ ctx, path: ast.path, value: jp.value(tags, jpify(ast.path))}, null, 0);
                 value = jp.value(tags, jpify(tagPath)) || ctx;
@@ -334,6 +337,7 @@ const inceptionPreprocessor = ast => {
 
 module.exports = {
     regex,
+    jpify,
     deref,
     query,
     constraints: constraintsOperator,

@@ -29,8 +29,6 @@ const SPREAD_OPERATOR = '\\*{1,2}';
 const ARG_SEPARATOR = '\\s*\\:\\s*';
 const ARG_NAME = '[a-zA-Z0-9_\\s-\\$\\.]*';
 
-// `(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$\.]+|\*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)`
-// /(?:\s*\|\s*)((?:[a-zA-Z0-9_\-\$\.]+|§*{1,2})(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)/
 const pipes = `(?:${PIPE_SEPARATOR})((?:${FUNCTION_NAME}|${SPREAD_OPERATOR})(?:${ARG_SEPARATOR}${ARG_NAME})*)`; // https://regex101.com/r/n2qnj7/6
 const pipesRegex = new RegExp(pipes, 'g'); // consider multi line flag `m`, unicode `u` and sticky `y`
 placeholder.pipes = pipesRegex;
