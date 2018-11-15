@@ -1,8 +1,9 @@
+/* eslint-disable camelcase */
 const jp = require('jsonpath');
 const F = require('functional-pipelines');
 const traverse = require('traverse');
 
-const {transform, reRenderTags} = require('./transform');
+const {transform, reRenderTags, applyPolicies} = require('./transform');
 
 const document = Object.freeze({
     id: 123,
@@ -815,18 +816,19 @@ describe('scenario: self reference staged transform 4', () => {
         expect(tags).toEqual(expectedTags);
         expect(sources['@@next']).toEqual([
             {
-                "path": "$.h",
-                "source": "{@price{$}}",
-                "tag": "price",
-                "tagPath": "price",
-                "templatePath": "$"
-            },
-            {
                 "path": "$.i",
                 "source": "{@color[0]{$}}",
                 "tag": "color[0]",
                 "tagPath": "color[0]",
-                "templatePath": "$"
+                "templatePath": "$",
+                "type": "@@tag"
+            }, {
+                "path": "$.h",
+                "source": "{@price{$}}",
+                "tag": "price",
+                "tagPath": "price",
+                "templatePath": "$",
+                "type": "@@tag"
             }]
         );
 
@@ -840,6 +842,59 @@ describe('scenario: self reference staged transform 4', () => {
             "i": "Red from 123",
             "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
             "z": "2016MMDDHHmmssSSS"
+        });
+    });
+});
+
+describe('scenario: key policies', () => {
+    const template = {
+        'TAGS': {
+            hot: '{:policy.collapse_snake_case {tags.hot.author}}', // transplanted under new parent and child keys by policy
+            seasonal: '{{tags.seasonal.author}}}', // stays under the original key
+            personalTransportation: '{:policy.collapse_snake_case {tags.personalTransportation.author}}' // transplanted under new parent and child keys by policy
+        }
+    };
+
+    const tags = {};
+    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_camle_case')}};
+
+    it('works: 5', () => {
+        const result = transform(template, {sources, tags})(document);
+        const expectedResult = {
+            "TAGS": {
+                "hot": "anonymousUser1",
+                "personalTransportation": "memberUser3",
+                "seasonal": "anonymousUser2}"
+            }
+        };
+        expect(result).toEqual(expectedResult);
+        expect(sources['@@next']).toEqual([
+            {
+                "path": "$.TAGS.hot",
+                "source": "{:policy.collapse_snake_case {tags.hot.author}}",
+                "tag": "policy.collapse_snake_case",
+                "tagPath": "tags.hot.author",
+                "templatePath": "",
+                "type": "@@policy"
+            }, {
+                "path": "$.TAGS.personalTransportation",
+                "source": "{:policy.collapse_snake_case {tags.personalTransportation.author}}",
+                "tag": "policy.collapse_snake_case",
+                "tagPath": "tags.personalTransportation.author",
+                "templatePath": "",
+                "type": "@@policy"
+            }
+        ]);
+
+        const policyApplied = applyPolicies(result, {tags, sources})(document);
+        expect(policyApplied).toEqual({
+            "TAGS": {
+                "hot": undefined,
+                "personalTransportation": undefined,
+                "seasonal": "anonymousUser2}"
+            },
+            "tags_hot_author": "anonymousUser1",
+            "tags_personal_transportation_author": "memberUser3"
         });
     });
 });

@@ -63,7 +63,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
     const ops = {
         '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
             ...ast,
-            value: defaultValue
+            value: parseTextArgs(defaultValue).pop()
         } : F.compose(query, deref(sources))(ast, {meta, source: defaultSource})),
         '!': ast => (isAltLookup, altSource, ...args) => {
             let result = ast;
@@ -75,7 +75,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
             result = result.value !== undefined ? result : (
                 defaultValue !== undefined ? {
                     ...result,
-                    value: defaultValue
+                    value: parseTextArgs(defaultValue).pop() // @TODO: check why it converts to string even if it's standalone
                 } : {
                     ...result, value: null
                 }
@@ -99,8 +99,12 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
 
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
-        ':': ast => {
-            throw new Error('Not Implemented Yet: [symbol(:)]');
+        ':': ast => (sources, tag) => {
+            console.log({tag});
+            sources['@@next'] = sources['@@next'] || [];
+            const job = {type: '@@policy', path: jp.stringify(context.path), tag: tag, source: ast.source, templatePath: '', tagPath: ast.path};
+            sources['@@next'].push(job);
+            return {...ast, policy: tag};
         },
         '#': ast => (sources, tag) => {
             tag = tag.trim();
@@ -119,9 +123,7 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             return {...ast, tag: path};
         },
         '@': ast => (sources, tag) => {
-            // throw new Error('Not Implemented Yet: [symbol(@)]');
             const ctx = tags[tag];
-            // sources.tags[tag] = sources.tags[tag] || {};
             // Path rewrite
             const relativeTagPath = ast.path[0] === '$' ? ast.path.slice(1) : ast.path;
             const tagPath = `${tag}${relativeTagPath[0] === '[' ? '' : relativeTagPath[0] ? '.' : ''}${relativeTagPath === '$' ? '' : relativeTagPath}`;
@@ -130,8 +132,8 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             if (F.isEmptyValue(ctx)) {
                 value = ast.source;
                 sources['@@next'] = sources['@@next'] || [];
-                const token = {path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
-                sources['@@next'].push(token);
+                const job = {type: '@@tag', path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
+                sources['@@next'].unshift(job);
             } else {
                 // value = JSON.stringify({ ctx, path: ast.path, value: jp.value(tags, jpify(ast.path))}, null, 0);
                 value = jp.value(tags, jpify(tagPath)) || ctx;
@@ -169,8 +171,8 @@ const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'
 
 const parseTextArgs = (...args) => {
     const parseNumeric = text => {
-        const isIntText = /\d+/;
-        const isFloatText = /\d+\.\d+/;
+        const isIntText = /^\d+$/;
+        const isFloatText = /^\d+\.\d+$/;
 
         if (isFloatText.test(text)) {
             return parseFloat(text, 10);
@@ -334,6 +336,7 @@ const inceptionPreprocessor = ast => {
 
 module.exports = {
     regex,
+    jpify,
     deref,
     query,
     constraints: constraintsOperator,

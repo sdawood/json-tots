@@ -19,6 +19,8 @@ const defaultConfig = {
 };
 const bins = require('./core/builtins');
 const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
+const {jpify} = require('./core/operators');
+const {runPolicy} = require('./core/policy/key/run-policy');
 
 /**
  * Transforms JSON document using a JSON template
@@ -99,13 +101,21 @@ const reRenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {},
         const rendered = jp.value(template, path).replace(source, value);
         jp.value(template, path, rendered);
         return template;
-    }, () => (template), sources['@@next']);
+    }, () => (template), sources['@@next'].filter(job => job['type'] === '@@tag'));
+};
 
+const applyPolicies = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+    return F.reduce((acc, {path, tag, source, templatePath, tagPath}) => {
+        const policy = jp.value(sources, jpify(tag));
+        const {template: rendered, templatePath: tPath} = runPolicy(policy, acc, document)({path, tag, source, templatePath, tagPath});
+        return rendered;
+    }, () => (template), sources['@@next'].filter(job => job['type'] === '@@policy'));
 };
 
 module.exports = {
     transform,
     reRenderTags,
+    applyPolicies,
     data: {
         ...renderData,
         defaultConfig
