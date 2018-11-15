@@ -21,10 +21,16 @@ json-tots supports:
 
 **Try it out `online`** [here](https://npm.runkit.com/json-tots)
 
+### 2.3.1 (2018-11-15)
+#### Features
+- apply key policies using the new `:` operator - alpha quality
+- add stage applyPolicies
+
 ### 2.0.0 (2018-11-07)
 #### Features
 - #tag, # (template-string-path) #$ (leaf-path): Tag with a string-tag, current template-string (f19412d)
 - insertion order sensitve self back-refernece: a later tag-reference can successfully deref an (c831c32)
+- add stage reRenderTags
 #### BREAKING CHANGES
 - #tag, # (template-string-path) #$ (leaf-path): Refined tagging syntax for # without a string tag
 
@@ -668,6 +674,63 @@ describe('scenario: self reference staged transform 4', () => {
             "i": "Red from 123",
             "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
             "z": "2016MMDDHHmmssSSS"
+        });
+    });
+});
+
+```
+
+### Symbol `:` operator and key editing policies
+```js
+describe('scenario: key policies', () => {
+    const template = {
+        'TAGS': {
+            hot: '{:policy.collapse_snake_case {tags.hot.author}}', // transplanted under new parent and child keys by policy
+            seasonal: '{{tags.seasonal.author}}}', // stays under the original key
+            personalTransportation: '{:policy.collapse_snake_case {tags.personalTransportation.author}}' // transplanted under new parent and child keys by policy
+        }
+    };
+
+    const tags = {};
+    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_camle_case')}};
+
+    it('works: 5', () => {
+        const result = transform(template, {sources, tags})(document);
+        const expectedResult = {
+            "TAGS": {
+                "hot": "anonymousUser1",
+                "personalTransportation": "memberUser3",
+                "seasonal": "anonymousUser2}"
+            }
+        };
+        expect(result).toEqual(expectedResult);
+        expect(sources['@@next']).toEqual([
+            {
+                "path": "$.TAGS.hot",
+                "source": "{:policy.collapse_snake_case {tags.hot.author}}",
+                "tag": "policy.collapse_snake_case",
+                "tagPath": "tags.hot.author",
+                "templatePath": "",
+                "type": "@@policy"
+            }, {
+                "path": "$.TAGS.personalTransportation",
+                "source": "{:policy.collapse_snake_case {tags.personalTransportation.author}}",
+                "tag": "policy.collapse_snake_case",
+                "tagPath": "tags.personalTransportation.author",
+                "templatePath": "",
+                "type": "@@policy"
+            }
+        ]);
+
+        const policyApplied = applyPolicies(result, {tags, sources})(document);
+        expect(policyApplied).toEqual({
+            "TAGS": {
+                "hot": undefined,
+                "personalTransportation": undefined,
+                "seasonal": "anonymousUser2}"
+            },
+            "tags_hot_author": "anonymousUser1",
+            "tags_personal_transportation_author": "memberUser3"
         });
     });
 });

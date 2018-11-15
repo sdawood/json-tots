@@ -3,7 +3,7 @@ const jp = require('jsonpath');
 const F = require('functional-pipelines');
 const traverse = require('traverse');
 
-const {transform, reRenderTags, applyPolicy} = require('./transform');
+const {transform, reRenderTags, applyPolicies} = require('./transform');
 
 const document = Object.freeze({
     id: 123,
@@ -846,7 +846,7 @@ describe('scenario: self reference staged transform 4', () => {
     });
 });
 
-describe('scenario: self reference staged transform + key policies', () => {
+describe('scenario: key policies', () => {
     const template = {
         'TAGS': {
             hot: '{:policy.collapse_snake_case {tags.hot.author}}', // transplanted under new parent and child keys by policy
@@ -886,7 +886,7 @@ describe('scenario: self reference staged transform + key policies', () => {
             }
         ]);
 
-        const policyApplied = applyPolicy(result, {tags, sources})(document);
+        const policyApplied = applyPolicies(result, {tags, sources})(document);
         expect(policyApplied).toEqual({
             "TAGS": {
                 "hot": undefined,

@@ -20,6 +20,7 @@ const defaultConfig = {
 const bins = require('./core/builtins');
 const {renderStringNode, renderFunctionExpressionNode, renderArrayNode, data: renderData} = require('./core/render');
 const {jpify} = require('./core/operators');
+const {runPolicy} = require('./core/policy/key/run-policy');
 
 /**
  * Transforms JSON document using a JSON template
@@ -103,10 +104,10 @@ const reRenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {},
     }, () => (template), sources['@@next'].filter(job => job['type'] === '@@tag'));
 };
 
-const applyPolicy = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+const applyPolicies = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     return F.reduce((acc, {path, tag, source, templatePath, tagPath}) => {
         const policy = jp.value(sources, jpify(tag));
-        const {template: rendered, templatePath: tPath} = policy(acc, {path, tag, source, templatePath, tagPath})(document);
+        const {template: rendered, templatePath: tPath} = runPolicy(policy, acc, document)({path, tag, source, templatePath, tagPath});
         return rendered;
     }, () => (template), sources['@@next'].filter(job => job['type'] === '@@policy'));
 };
@@ -114,7 +115,7 @@ const applyPolicy = (template, {meta = 0, sources = {'default': {}}, tags = {}, 
 module.exports = {
     transform,
     reRenderTags,
-    applyPolicy,
+    applyPolicies,
     data: {
         ...renderData,
         defaultConfig

@@ -101,9 +101,7 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => (sources, tag) => {
             sources['@@next'] = sources['@@next'] || [];
-            console.log({policyName: tag});
             const job = {type: '@@policy', path: jp.stringify(context.path), tag: tag, source: ast.source, templatePath: '', tagPath: ast.path};
-            console.log(JSON.stringify(job));
             sources['@@next'].push(job);
             return {...ast, policy: tag};
         },
