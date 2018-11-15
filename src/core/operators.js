@@ -63,7 +63,7 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
     const ops = {
         '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
             ...ast,
-            value: defaultValue
+            value: parseTextArgs(defaultValue).pop()
         } : F.compose(query, deref(sources))(ast, {meta, source: defaultSource})),
         '!': ast => (isAltLookup, altSource, ...args) => {
             let result = ast;
@@ -100,6 +100,7 @@ const constraintsOperator = ({sources}) => F.composes(constraints({
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => (sources, tag) => {
+            console.log({tag});
             sources['@@next'] = sources['@@next'] || [];
             const job = {type: '@@policy', path: jp.stringify(context.path), tag: tag, source: ast.source, templatePath: '', tagPath: ast.path};
             sources['@@next'].push(job);
@@ -170,8 +171,8 @@ const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'
 
 const parseTextArgs = (...args) => {
     const parseNumeric = text => {
-        const isIntText = /\d+/;
-        const isFloatText = /\d+\.\d+/;
+        const isIntText = /^\d+$/;
+        const isFloatText = /^\d+\.\d+$/;
 
         if (isFloatText.test(text)) {
             return parseFloat(text, 10);

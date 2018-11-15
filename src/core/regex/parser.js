@@ -11,9 +11,14 @@ const OWS = '\\s*\\|?\\s*'; //'[\s\t\r\n\|,;]*';
 const SYMBOL = '[a-zA-Z0-9_\\-\\$\\.\\[\\]"\\s]*';
 const SOURCE_NAME = '["]?[a-zA-Z0-9_\\s\\-\\$]*["]?';
 
+const ARG_SEPARATOR = '\\s*\\:\\s*';
+const ARG_NAME = '[a-zA-Z0-9_\\s-\\$\\.]*';
+
 const inception = `(\\.\\*|\\.{2,}|\\.\\d{1,2}|>\\*|>{2,}|>\\d{1,2}|%\\*|%{2,}|%\\d{1,2})?`;
 const enumeration = `(\\*{1,2})?`;
 const symbol = `(:${SYMBOL}|[#|@]${SYMBOL})?`;
+// const symbol = /((?:\:[a-zA-Z0-9_\-\$\.\[\]"\s]*(?:\s*\:\s*[a-zA-Z0-9_\s-\$\.]*)*)*|[#|@][a-zA-Z0-9_\-\$\.\[\]"\s]*)?/g;
+// const symbol = `((?:\\:${SYMBOL}${ARG_SEPARATOR}${ARG_NAME})*|[#|@]${SYMBOL})?`;
 const constraint = `([!|\\?](?:[=|~]${SYMBOL}(?:${WS}\\:${WS}${SOURCE_NAME})*)?)?`;
 const query = '((?:\\+|\\-)\\d*)?';
 
@@ -26,8 +31,6 @@ placeholder.operatorNames = ['inception', 'enumerate', 'symbol', 'constraints', 
 const PIPE_SEPARATOR = '\\s*\\|\\s*';
 const FUNCTION_NAME = '[a-zA-Z0-9_\\-\\$\\.]+';
 const SPREAD_OPERATOR = '\\*{1,2}';
-const ARG_SEPARATOR = '\\s*\\:\\s*';
-const ARG_NAME = '[a-zA-Z0-9_\\s-\\$\\.]*';
 
 const pipes = `(?:${PIPE_SEPARATOR})((?:${FUNCTION_NAME}|${SPREAD_OPERATOR})(?:${ARG_SEPARATOR}${ARG_NAME})*)`; // https://regex101.com/r/n2qnj7/6
 const pipesRegex = new RegExp(pipes, 'g'); // consider multi line flag `m`, unicode `u` and sticky `y`
