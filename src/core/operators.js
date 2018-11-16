@@ -60,8 +60,6 @@ const query = (ast, {meta = 2} = {}) => {
  * @returns {function(*=, {meta?: *}=): {"@meta": Number.meta}}
  */
 const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
-    if (!jp.value(ast, '$.operators.constraint')) return ast;
-
     const ops = {
         '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
             ...ast,
@@ -102,8 +100,6 @@ const constraintOperator = ({sources}) => F.composes(constraint({
 }), bins.has('$.operators.constraint'));
 
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
-    if (!jp.value(ast, '$.operators.symbol')) return ast;
-
     const ops = {
         ':': ast => (sources, tag) => {
             console.log({tag});
