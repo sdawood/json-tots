@@ -47,31 +47,32 @@ const query = (ast, {meta = 2} = {}) => {
             '+': ast => count => values => bins.take(count)(values),
             '-': ast => count => values => count ? bins.skip(count)(values) : values.pop() // semantics of standalone - are not yet defined
         };
-        const [op, ...count] = ast.operators.query;
-        queryOp = ops[op](ast)(F.isEmptyValue(count) ? undefined : bins.asInt(count.join('')));
+        const {operator, count} = ast.operators.query;
+        queryOp = ops[operator](ast)(count);
     }
     return {...ast, '@meta': meta, value: queryOp(ast.value)};
 };
 
 /**
- * NOTE: regex for constraints would allow for !abc or ?abc reserved for future use
+ * NOTE: regex for constraint would allow for !abc or ?abc reserved for future use
  * @param sources
  * @param config
  * @returns {function(*=, {meta?: *}=): {"@meta": Number.meta}}
  */
-const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
+const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
+    if (!jp.value(ast, '$.operators.constraint')) return ast;
+
     const ops = {
         '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
             ...ast,
             value: parseTextArgs(defaultValue).pop()
         } : F.compose(query, deref(sources))(ast, {meta, source: defaultSource})),
-        '!': ast => (isAltLookup, altSource, ...args) => {
+        '!': ast => (isAltLookup, altSource, defaultValue) => {
             let result = ast;
             result = !F.isEmptyValue(altSource) ? F.compose(query, deref(sources))(ast, {
                 meta,
                 source: altSource
             }) : {...result, value: F.isNil(ast.value) ? null : ast.value};
-            const [defaultValue] = args;
             result = result.value !== undefined ? result : (
                 defaultValue !== undefined ? {
                     ...result,
@@ -85,24 +86,36 @@ const constraints = ({sources, config}) => (ast, {meta = 2} = {}) => {
     };
 
     // eslint-disable-next-line prefer-const
-    let [op, eq, ...app] = ast.operators.constraints;
-    app = (eq && eq !== '=') ? [eq, ...app] : app; // if first char is not = put it back with the `application` string
-    const args = eq ? F.pipes(bins.split(':'), bins.take(2), lst => F.map(bins.trim, lst))(app.join('')) : [];
-    const result = ops[op](ast)(eq === '=', ...args);
+    const {
+        operator,
+        equal,
+        source,
+        defaultValue
+    } = ast.operators.constraint;
+    const result = ops[operator](ast)(equal === '=', source, defaultValue);
 
     return {...result, '@meta': meta};
 };
 
-const constraintsOperator = ({sources}) => F.composes(constraints({
+const constraintOperator = ({sources}) => F.composes(constraint({
     sources
-}), bins.has('$.operators.constraints'));
+}), bins.has('$.operators.constraint'));
 
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
+    if (!jp.value(ast, '$.operators.symbol')) return ast;
+
     const ops = {
         ':': ast => (sources, tag) => {
             console.log({tag});
             sources['@@next'] = sources['@@next'] || [];
-            const job = {type: '@@policy', path: jp.stringify(context.path), tag: tag, source: ast.source, templatePath: '', tagPath: ast.path};
+            const job = {
+                type: '@@policy',
+                path: jp.stringify(context.path),
+                tag: tag,
+                source: ast.source,
+                templatePath: '',
+                tagPath: ast.path
+            };
             sources['@@next'].push(job);
             return {...ast, policy: tag};
         },
@@ -132,7 +145,14 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             if (F.isEmptyValue(ctx)) {
                 value = ast.source;
                 sources['@@next'] = sources['@@next'] || [];
-                const job = {type: '@@tag', path: jp.stringify(context.path), tag, source: ast.source, templatePath: ast.path, tagPath};
+                const job = {
+                    type: '@@tag',
+                    path: jp.stringify(context.path),
+                    tag,
+                    source: ast.source,
+                    templatePath: ast.path,
+                    tagPath
+                };
                 sources['@@next'].unshift(job);
             } else {
                 // value = JSON.stringify({ ctx, path: ast.path, value: jp.value(tags, jpify(ast.path))}, null, 0);
@@ -144,8 +164,11 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
         }
     };
 
-    const [op, ...tag] = ast.operators.symbol;
-    const result = ops[op](ast)(sources, tag.join('').trim());
+    const {
+        operator,
+        tag
+    } = ast.operators.symbol;
+    const result = ops[operator](ast)(sources, tag);
     return {...result, '@meta': meta};
 };
 
@@ -162,8 +185,8 @@ const enumerate = (ast, {meta = 4} = {}) => {
         '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
-    const [i, ik = ''] = ast.operators.enumerate;
-    const result = ops[i + ik](ast);
+    const {operator, repeat} = ast.operators.enumerate;
+    const result = ops[repeat === 1 ? operator : operator + operator](ast);
     return {...result, '@meta': meta};
 };
 
@@ -197,29 +220,17 @@ const parseTextArgs = (...args) => {
 };
 
 const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
-    /*
-    * example: pipes: { '$1': 'toInt', '$2': 'isEven', '$3': '**', @meta': 3 }
-    */
     const pipes = ast.pipes;
-    const fnTuples = [...F.filter(
-        pair => pair[0].startsWith('$'),
-        F.iterator(pipes, {indexed: true, kv: true})
-    )
-    ]
-    .sort(sortBy(0));
 
-    if (fnTuples.length === 0) {
-        throw new Error(`Invalid pipes ${ast.source}. Did you forget the pipe '|' separator in the closing braces?`);
-    }
+    if (pipes.length === 0) return ast;
 
     // ordered [['$1', 'toInt:arg1:arg2'], ['$2', 'isEven:arg1:arg2']]
     const fnPipeline = F.map(([_, fnExpr]) => {
 // eslint-disable-next-line prefer-const
-        let [fnName, ...args] = fnExpr.split(regex.fnArgsSeparator);
-        args = F.map(arg => arg.trim(), args);
+        const {function: functionName, args} = pipes;
         const enrichedFunctions = {...functions, '*': bins.flatten, '**': bins.doubleFlatten};
-        if (!(fnName in enrichedFunctions)) {
-            throw new Error(`could not resolve function name [${fnName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
+        if (!(functionName in enrichedFunctions)) {
+            throw new Error(`could not resolve function name [${functionName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
         }
 
         /*
@@ -233,7 +244,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
          *
          */
         const phIndex = args.indexOf('__');
-        let fn = enrichedFunctions[fnName];
+        let fn = enrichedFunctions[functionName];
         if (phIndex >= 0) {
             // args[phIndex] = F.__;
             fn = F.oneslot(fn)(...parseTextArgs(...args)); // placeholder functions are normal functions, since renderedValue is passed into placeholder position with F.oneslot, which already creates a higher order function
@@ -244,7 +255,7 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
             const fn2 = fn(...parseTextArgs(...args));
             return F.isFunction(fn2) ? fn2 : F.lazy(fn2);
         }
-    }, fnTuples);
+    }, pipes);
 
     return {...ast, '@meta': meta, value: F.pipe(...fnPipeline)(ast.value)}; // we would love to unleash pipes (short circuit pipe), but current implementation would unreduce value reduced by functions. @TODO revisit later
 };
@@ -255,7 +266,7 @@ const applyAll = ({meta, sources, tags, functions, context, config, stages}) => 
     pipeOperator({functions}),
     enumerateOperator,
     symbolOperator({tags, context, sources, stages}),
-    constraintsOperator({sources, config}),
+    constraintOperator({sources, config}),
     query,
     deref(sources)
 );
@@ -266,7 +277,7 @@ const applyAll = ({meta, sources, tags, functions, context, config, stages}) => 
  * >> : for each child, apply transform with leader node
  * %% : zip transform, positional template from leader node renders child template at the same position
  * @param ast
- * @returns {{$inception, $depth: *}}
+ * @returns {{operator, repeat: *}}
  */
 const inception = options => (ast, enumerable, {meta = 5} = {}) => {
     const ops = {
@@ -321,17 +332,18 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
         }
     };
 
-    const {$inception, $depth} = ast;
-    const opFn = ops[$inception];
+    const {operator, repeat} = ast;
+    const opFn = ops[operator];
 
     const result = opFn(ast, enumerable, options);
     return result; //enumerable
 };
 
 const inceptionPreprocessor = ast => {
-    const [op, repeat, ...rest] = ast.operators.inception;
-    const $depth = repeat !== op ? repeat === '*' ? Number.POSITIVE_INFINITY : (repeat ? parseInt([repeat, ...rest].join(''), 10) : Number.POSITIVE_INFINITY) : rest.length + 1;
-    return {...ast, $inception: op, $depth};
+// eslint-disable-next-line prefer-const
+    let {operator, repeat} = ast.operators.inception;
+    repeat = repeat === '*' ? Number.POSITIVE_INFINITY : repeat;
+    return {...ast, operator: operator, repeat};
 };
 
 module.exports = {
@@ -339,7 +351,7 @@ module.exports = {
     jpify,
     deref,
     query,
-    constraints: constraintsOperator,
+    constraint: constraintOperator,
     symbol: symbolOperator,
     enumerate: enumerateOperator,
     inceptionPreprocessor,

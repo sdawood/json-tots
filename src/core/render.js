@@ -6,7 +6,7 @@ const sx = require('./strings');
 const operators = require('./operators');
 
 const Fb = require('./times');
-const parser = require('./regex/parser');
+const parser = require('./peg/parser');
 
 const rejectPlaceHolder = {open: '{!!{', close: '}!!}'};
 
@@ -22,9 +22,11 @@ function renderString(node, derefedList) {
 }
 
 function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}) {
-    const refList = parser.parse(contextRef.node);
-    if (F.isReduced(refList)) {
-        return {rendered: F.unreduced(refList).value};
+    let refList;
+    try {
+        refList = parser.parse(contextRef.node);
+    } catch (error) {
+        return {rendered: refList};
     }
 
     const derefedList = F.map(operators.applyAll({
@@ -116,7 +118,7 @@ function renderArrayNode(contextRef, options) {
         when: stickyWhen,
         recharge: false
     })(partitionFn), contextRef.node);
-    
+
     const {transform} = require('../transform'); // lazy require to break cyclic dependency
     const lols = F.map(
         iter => iter.metadata().$depth ? transduception(iter, options) : F.map(item => transform(item, options)(options.sources.origin), iter),

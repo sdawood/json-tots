@@ -7,6 +7,10 @@
   }
 }
 
+tots = tot+
+
+tot =  template:TEMPLATE (!"{" .)* { return template }
+
 TEMPLATE
   = "{" _ ops:OPERATORS? _ "{" _ jp:JP? _ "}" _ pipes:PIPES? _ "}" {
       return {operators: ops, path: jp, pipes: pipes, source: text(), value: null}
@@ -19,7 +23,7 @@ INCEPTION_OP =
 	inc:"." rep:"*" { return { operator: inc, repeat: rep}}
     / inc:"." rep:"."* { return { operator: inc, repeat: rep.length}}
     / inc:"." rep:[0-9]+ { return { operator: inc, repeat: makeInteger(rep)}}
-    / inc:">" rep:"*"
+    / inc:">" rep:"*" { return { operator: inc, repeat: rep}}
     / inc:">" rep:">"* { return { operator: inc, repeat: rep.length}}
     / inc:">" rep:[0-9]+ { return { operator: inc, repeat: makeInteger(rep)}}
     / inc:"%" rep:"*" { return { operator: inc, repeat: rep}}
@@ -29,8 +33,8 @@ INCEPTION_OP =
 ENUMERATION_OP = enu:"*" rep:"*"? { return { operator: enu, repeat: rep ? 1 : 0}}
 
 SYMBOL_OP
-	= op:":" sym:SYMBOL {return  { operator: op, tag: sym.join("")}}
-	/ op:[#|@] sym:SYMBOL {return  { operator: op, tag: sym.join("")}}
+	= op:":" sym:SYMBOL {return  { operator: op, tag: sym.join("").trim()}}
+	/ op:[#|@] sym:SYMBOL {return  { operator: op, tag: sym.join("").trim()}}
 
 CONSTRAINT_OP = op:[!?] eq:[=~]? _ src:SOURCE_NAME? _ dVal:(":" SYMBOL)? { return { operator: op, equal: eq, source: src, defaultValue: dVal ? dVal.join("").slice(1) : dVal}}
 
@@ -44,7 +48,7 @@ PIPES
   / SPREAD_OPERATOR
 
 Pipe
-	= PIPE_SEPARATOR fn:FUNCTION_NAME args:(ARG)* { return {function: fn, args: args}}
+	= PIPE_SEPARATOR fn:FUNCTION_NAME args:(ARG)* { return {function: fn, args: args.map(function(arg){arg.trim()})}}
     / PIPE_SEPARATOR spread:SPREAD_OPERATOR { return {function: spread } }
 
 SPREAD_OPERATOR
@@ -64,9 +68,3 @@ ARG = ARG_SEPARATOR arg:ARG_NAME { return arg }
 FUNCTION_NAME = [a-zA-Z0-9_-\s\$\.]+ { return text() }
 SYMBOL = [a-zA-Z0-9_-\s\$\.\[\]"\s]*
 SOURCE_NAME = q1:'"'? name:[a-zA-Z0-9_-\s\\$]* q2:'"'? { return (q1 || "") + name.join("") + (q2 || "") }
-
-
-
-
-
-
