@@ -26,7 +26,7 @@ function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags
     try {
         refList = parser.parse(contextRef.node);
     } catch (error) {
-        return {rendered: refList};
+        return {rendered: contextRef.node};
     }
 
     const derefedList = F.map(operators.applyAll({
@@ -99,8 +99,14 @@ function renderArrayNode(contextRef, options) {
     const NONE = {};
     const isString = x => F.isString(x) ? x : F.reduced(NONE);
     const hasReph0 = x => {
-        const refList = parser.parse(x);
-        return F.isReduced(refList) ? F.reduced(NONE) : refList[0];
+        let refList;
+        try {
+            refList = parser.parse(x);
+            return refList[0];
+        } catch (error) {
+            return F.reduced(NONE);
+        }
+        // return F.isReduced(refList) ? F.reduced(NONE) : refList[0];
     };
 
     const hasInception = ast => jp.value(ast, '$.operators.inception') ? ast : F.reduced(NONE);

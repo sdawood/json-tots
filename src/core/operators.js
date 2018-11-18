@@ -61,9 +61,9 @@ const query = (ast, {meta = 2} = {}) => {
  */
 const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
     const ops = {
-        '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (defaultValue !== undefined ? {
+        '?': ast => (isAltLookup, defaultSource = 'default', defaultValue) => ast.value !== undefined ? ast : (!F.isNil(defaultValue) ? {
             ...ast,
-            value: parseTextArgs(defaultValue).pop()
+            value: defaultValue
         } : F.compose(query, deref(sources))(ast, {meta, source: defaultSource})),
         '!': ast => (isAltLookup, altSource, defaultValue) => {
             let result = ast;
@@ -72,9 +72,9 @@ const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
                 source: altSource
             }) : {...result, value: F.isNil(ast.value) ? null : ast.value};
             result = result.value !== undefined ? result : (
-                defaultValue !== undefined ? {
+                !F.isNil(defaultValue) ? {
                     ...result,
-                    value: parseTextArgs(defaultValue).pop() // @TODO: check why it converts to string even if it's standalone
+                    value: defaultValue // @TODO: check why it converts to string even if it's standalone
                 } : {
                     ...result, value: null
                 }
@@ -82,7 +82,6 @@ const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
             return result;
         }
     };
-
     // eslint-disable-next-line prefer-const
     const {
         operator,
@@ -91,7 +90,6 @@ const constraint = ({sources, config}) => (ast, {meta = 2} = {}) => {
         defaultValue
     } = ast.operators.constraint;
     const result = ops[operator](ast)(equal === '=', source, defaultValue);
-
     return {...result, '@meta': meta};
 };
 
@@ -102,7 +100,6 @@ const constraintOperator = ({sources}) => F.composes(constraint({
 const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
     const ops = {
         ':': ast => (sources, tag) => {
-            console.log({tag});
             sources['@@next'] = sources['@@next'] || [];
             const job = {
                 type: '@@policy',
@@ -221,9 +218,8 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
     if (pipes.length === 0) return ast;
 
     // ordered [['$1', 'toInt:arg1:arg2'], ['$2', 'isEven:arg1:arg2']]
-    const fnPipeline = F.map(([_, fnExpr]) => {
+    const fnPipeline = F.map(({function: functionName, args = []}) => {
 // eslint-disable-next-line prefer-const
-        const {function: functionName, args} = pipes;
         const enrichedFunctions = {...functions, '*': bins.flatten, '**': bins.doubleFlatten};
         if (!(functionName in enrichedFunctions)) {
             throw new Error(`could not resolve function name [${functionName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
@@ -257,15 +253,6 @@ const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
 };
 
 const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.pipes'));
-
-const applyAll = ({meta, sources, tags, functions, context, config, stages}) => F.composes(
-    pipeOperator({functions}),
-    enumerateOperator,
-    symbolOperator({tags, context, sources, stages}),
-    constraintOperator({sources, config}),
-    query,
-    deref(sources)
-);
 
 /**
  * op = [ .+ | .N | >+ | >N | %+ | %N ]
@@ -339,8 +326,17 @@ const inceptionPreprocessor = ast => {
 // eslint-disable-next-line prefer-const
     let {operator, repeat} = ast.operators.inception;
     repeat = repeat === '*' ? Number.POSITIVE_INFINITY : repeat;
-    return {...ast, operator: operator, repeat};
+    return {...ast, operator: operator, $depth: repeat};
 };
+
+const applyAll = ({meta, sources, tags, functions, context, config, stages}) => F.composes(
+    pipeOperator({functions}),
+    enumerateOperator,
+    symbolOperator({tags, context, sources, stages}),
+    constraintOperator({sources, config}),
+    query,
+    deref(sources)
+);
 
 module.exports = {
     regex,

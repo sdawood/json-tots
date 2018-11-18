@@ -233,39 +233,37 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        name: `${document.title} [${document.description}] http://items/${document.title}`,
-        // updatedAt: new Date(document.updatedAt),
-        // inStockCount: parseInt(document.inStockCount, 10),
-        reviews: {
-            eula: 'read and agree and let us get on with it',
-            high: document.productReview.fiveStar[0].comment,
-            low: document.productReview.oneStar[0].comment,
-            disclaimer: `Ad: ${document.comment}`
+        "name": "Bicycle 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
+        "oneScore": 1,
+        "optional1": "@default::default-value",
+        "optional2": "OPTIONAL DEFAULT VALUE 2",
+        "optional2Quoted": "\"OPTIONAL DEFAULT VALUE 2\"",
+        "optional3": "optional-default-value-3",
+        "optionalInContext1": "Value for not.there = @default::default-value",
+        "optionalInContext2": "Value for not.there = \"\"",
+        "optionalInContext3": "Value for not.there = default value",
+        "optionalInContext3Quoted": "Value for not.there = \"default value in quotes\"",
+        "required": null,
+        "required1": null,
+        "required2": "@alt-source::alt-value",
+        "required3": null,
+        "required4": "ALT_VALUE_DEFAULT",
+        "required5": null,
+        "required6": null,
+        "required7": "ALT_VALUE_DEFAULT",
+        "reviews": {
+            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer",
+            "eula": "read and agree and let us get on with it",
+            "high": "Excellent! Can't recommend it highly enough! Buy it!",
+            "low": "Terrible product! Do no buy this."
         },
-        safety: document['Safety.Warning.On.Root'],
-        topRaters: 'user1 - user2 - user3',
-        topTaggers: "memberUser4 - memberUser5 - memberUser6",
-        scores: [5, 5],
-        oneScore: 1,
-        users: ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
-        top5users: ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
-        skip2users: ["memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
-        optional1: "@default::default-value", // lookup from sources['default']
-        optional2: "OPTIONAL DEFAULT VALUE 2", // use default value provided
-        optional2Quoted: '"OPTIONAL DEFAULT VALUE 2"', // use default value provided
-        optional3: "optional-default-value-3", // use default value provided
-        optionalInContext1: 'Value for not.there = ',
-        optionalInContext2: 'Value for not.there = ""',
-        optionalInContext3: 'Value for not.there = default value',
-        optionalInContext3Quoted: 'Value for not.there = "default value in quotes"',
-        required: null, // should be set to null
-        required1: null, // should be set to null
-        required2: '@alt-source::alt-value', // lookup value in alt-source, else null
-        required3: null, // lookup value in alt-source, else null
-        required4: 'ALT_VALUE_DEFAULT', // lookup value in alt-source, else default
-        required5: null, // should be set to null
-        required6: null, // should be set to null
-        required7: 'ALT_VALUE_DEFAULT' // should be set to default
+        "safety": "Always wear a helmet",
+        "scores": [5, 5],
+        "skip2users": ["memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
+        "top5users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
+        "topRaters": "user1 - user2 - user3",
+        "topTaggers": "memberUser4 - memberUser5 - memberUser6",
+        "users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"]
     };
 
     let result;
@@ -332,64 +330,37 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        name: `${document.title.toUpperCase()} [${document.description}] http://items/${document.title}`,
-        // updatedAt: new Date(document.updatedAt),
-        // inStockCount: parseInt(document.inStockCount, 10),
-        reviews: {
-            eula: 'read and agree and let us get on with it',
-            high:
-            document.productReview.fiveStar[0].comment,
-            low:
-            document.productReview.oneStar[0].comment,
-            disclaimer:
-                `Ad: ${document.comment}`
+        "expensive": true,
+        "name": "BICYCLE 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
+        "oneScore": 1,
+        "optional1": "@default::default-value",
+        "optional2": "OPTIONAL DEFAULT VALUE 2",
+        "optional2Quoted": "\"OPTIONAL DEFAULT VALUE 2\"",
+        "optional3": "optional-default-value-3",
+        "optionalInContext1": "Value for not.there = @default::default-value",
+        "optionalInContext2": "Value for not.there = \"\"",
+        "optionalInContext3": "Value for not.there = default value",
+        "optionalInContext3Quoted": "Value for not.there = \"default value in quotes\"",
+        "required": null,
+        "required1": null,
+        "required2": "@alt-source::alt-value",
+        "required3": null,
+        "required4": "ALT_VALUE_DEFAULT",
+        "required5": null,
+        "required6": null,
+        "required7": "ALT_VALUE_DEFAULT",
+        "reviews": {
+            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer",
+            "eula": "read and agree and let us get on with it",
+            "high": "Excellent! Can't recommend it highly enough! Buy it!",
+            "low": "Terrible product! Do no buy this."
         },
-        expensive: true,
-        safety: "Always wear ...",
-        topRaters:
-            'user1 - user2 - user3',
-        topTaggers:
-            "memberUser4 - memberUser5 - memberUser6",
-        scores:
-            [5, 5],
-        oneScore:
-            1,
-        users:
-            ["anonymousUser1", "anonymousUser2"],
-        top5users:
-            ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
-        optional1:
-            "@default::default-value", // lookup from sources['default']
-        optional2:
-            "OPTIONAL DEFAULT VALUE 2", // use default value provided
-        optional2Quoted:
-            '"OPTIONAL DEFAULT VALUE 2"', // use default value provided
-        optional3:
-            "optional-default-value-3", // use default value provided
-        optionalInContext1:
-            'Value for not.there = ',
-        optionalInContext2:
-            'Value for not.there = ""',
-        optionalInContext3:
-            'Value for not.there = default value',
-        optionalInContext3Quoted:
-            'Value for not.there = "default value in quotes"',
-        required:
-            null, // should be set to null
-        required1:
-            null, // should be set to null
-        required2:
-            '@alt-source::alt-value', // lookup value in alt-source, else null
-        required3:
-            null, // lookup value in alt-source, else null
-        required4:
-            'ALT_VALUE_DEFAULT', // lookup value in alt-source, else default
-        required5:
-            null, // should be set to null
-        required6:
-            null, // should be set to null
-        required7:
-            'ALT_VALUE_DEFAULT' // should be set to default
+        "safety": "Always wear ...",
+        "scores": [5, 5],
+        "top5users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
+        "topRaters": "user1 - user2 - user3",
+        "topTaggers": "memberUser4 - memberUser5 - memberUser6",
+        "users": ["anonymousUser1", "anonymousUser2"]
     };
 
     let result;
@@ -444,8 +415,8 @@ describe('inception, apply first element as `document` to n successor array elem
             {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
         ], // render next n nodes with leading rendered item as scoped-document
         views: ['{%% {pictures}}', '[{{view}}]({{images.length}})'], // for-each item in enumerable scoped-document, render with next node
-        twoimages: ['{+ %2 {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
-        images: ['{+ %* {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'], // zip-align
+        twoimages: ['{%2 | + {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {?=default:Not Available{[1].thumbnail}}'], // zip-align
+        images: ['{%* | + {pictures..images}}', 'front -> {{[1].thumbnail}}', 'rear -> {{[1].thumbnail}}', 'side -> {{[1].thumbnail}}'], // zip-align
         recursive3: ['{.3{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}'],
         recursive2: ['{.2{productReview}}', '{{fiveStar}}', '{{[(@.length - 1)]}}', '{{comment}}', '{{description}}']
     };
