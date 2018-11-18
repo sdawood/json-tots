@@ -21,7 +21,8 @@ module.exports = {
     asArray: (value, delimiter = '') => value.split(delimiter),
     orNull: value => value || null,
     of: key => o => o[key] !== undefined ? o[key] : F.reduced(o),
-    has: path => o => (jp.value(o, path) !== undefined) ? o : F.reduced(o),
+// eslint-disable-next-line eqeqeq
+    has: path => o => (jp.value(o, path) != undefined) ? o : F.reduced(o),
     flatten: F.flatten,
     doubleFlatten: enumerable => F.flatten(F.map(F.flatten, enumerable)),
     isNaN,

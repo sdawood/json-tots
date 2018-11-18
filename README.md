@@ -21,6 +21,11 @@ json-tots supports:
 
 **Try it out `online`** [here](https://npm.runkit.com/json-tots)
 
+### 3.0.0 (2018-11-18)
+#### Features
+- PEG.js parser instead of the handwritten regex parser: [grammer](src/core/peg/grammer.pegls)
+- major refactoring
+
 ### 2.3.1 (2018-11-15)
 #### Features
 - apply key policies using the new `:` operator - alpha quality
