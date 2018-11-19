@@ -4,6 +4,9 @@ master|develop|npm
 
 # json-tots
 
+## Please take a moment to ...
+[Help keep json-tots alive and support async-json-tots development](https://www.patreon.com/shaady)
+
 `json-tots` offers a JSON Template Of Templates Declarative Transformation and Rendering engine.
 Everything is JSON, the template, the document, and extended arguments for template functions.
 
