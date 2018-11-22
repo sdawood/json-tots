@@ -700,7 +700,7 @@ describe('scenario: key policies', () => {
     };
 
     const tags = {};
-    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_camle_case')}};
+    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_snake_case')}};
 
     it('works: 5', () => {
         const result = transform(template, {sources, tags})(document);
