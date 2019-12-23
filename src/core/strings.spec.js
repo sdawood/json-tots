@@ -3,9 +3,9 @@ const strings = require('./strings');
 
 const templateWithStringKeys = 'Welcome user: ${lastName} ... ${firstName} ... ${lastName}';
 const templateWithStringKeysDoubleQuoted = 'Welcome user: "${lastName}" ... "${firstName}" ... "${lastName}"';
-const templateWithStringKeysSingleQuoted = "Welcome user: '${lastName}' ... '${firstName}' ... '${lastName}'";
+const templateWithStringKeysSingleQuoted = 'Welcome user: \'${lastName}\' ... \'${firstName}\' ... \'${lastName}\'';
 const templateWithDoubleQuotedStringKeys = 'Welcome user: ${"lastName"} ... ${"firstName"} ... ${"lastName"}';
-const templateWithSingleQuotedStringKeys = "Welcome user: ${'lastName'} ... ${'firstName'} ... ${'lastName'}";
+const templateWithSingleQuotedStringKeys = 'Welcome user: ${\'lastName\'} ... ${\'firstName\'} ... ${\'lastName\'}';
 
 const renderValuesMap = {
     firstName: 'James',
@@ -18,14 +18,14 @@ describe('lazyTemplateTag', () => {
         it('create a template function that accepts a Map arguments', () => {
             // const template = strings.lazyTag`${templateWithStringKeys}`; // this doesn't work // http://exploringjs.com/es6/ch_template-literals.html#sec_implementing-tag-functions, 8.5.3 Can I load a template literal from an external source?
             const template = strings.lazyTemplateTag`Welcome user: ${'lastName'} ... ${'firstName'} ... ${'lastName'}`;
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
     });
 
     describe('lazyTemplateTag with integer keys', () => {
         it('create a template function that accepts a List arguments', () => {
             const template = strings.lazyTemplateTag`Welcome user: ${0} ... ${1} ${0}`;
-            expect(template(...renderValuesList)).toEqual("Welcome user: Bond ... James Bond");
+            expect(template(...renderValuesList)).toEqual('Welcome user: Bond ... James Bond');
         });
     });
 });
@@ -34,27 +34,27 @@ describe('lazyTemplate creates a template function that accepts a Map arguments'
     describe('with default placeholder == ${.*}', () => {
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeys);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeysDoubleQuoted);
-            expect(template(renderValuesMap)).toEqual("Welcome user: \"Bond\" ... \"James\" ... \"Bond\"");
+            expect(template(renderValuesMap)).toEqual('Welcome user: "Bond" ... "James" ... "Bond"');
         });
 
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeysSingleQuoted);
-            expect(template(renderValuesMap)).toEqual("Welcome user: 'Bond' ... 'James' ... 'Bond'");
+            expect(template(renderValuesMap)).toEqual('Welcome user: \'Bond\' ... \'James\' ... \'Bond\'');
         });
 
         it('when called with a string with "key"s', () => {
             const template = strings.lazyTemplate(templateWithDoubleQuotedStringKeys);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
-        it("when called with a string with 'key's", () => {
+        it('when called with a string with \'key\'s', () => {
             const template = strings.lazyTemplate(templateWithSingleQuotedStringKeys);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
         it('when called a template with no parameters', () => {
@@ -65,34 +65,34 @@ describe('lazyTemplate creates a template function that accepts a Map arguments'
     describe('with custom placeholder == {{.*}}', () => {
         const templateWithStringKeys = 'Welcome user: {{lastName}} ... {{firstName}} ... {{lastName}}';
         const templateWithStringKeysDoubleQuoted = 'Welcome user: "{{lastName}}" ... "{{firstName}}" ... "{{lastName}}"';
-        const templateWithStringKeysSingleQuoted = "Welcome user: '{{lastName}}' ... '{{firstName}}' ... '{{lastName}}'";
+        const templateWithStringKeysSingleQuoted = 'Welcome user: \'{{lastName}}\' ... \'{{firstName}}\' ... \'{{lastName}}\'';
         const templateWithDoubleQuotedStringKeys = 'Welcome user: {{"lastName"}} ... {{"firstName"}} ... {{"lastName"}}';
-        const templateWithSingleQuotedStringKeys = "Welcome user: {{'lastName'}} ... {{'firstName'}} ... {{'lastName'}}";
+        const templateWithSingleQuotedStringKeys = 'Welcome user: {{\'lastName\'}} ... {{\'firstName\'}} ... {{\'lastName\'}}';
         const options = {placeholder: {open: '{{', close: '}}'}};
 
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeys, options);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeysDoubleQuoted, options);
-            expect(template(renderValuesMap)).toEqual("Welcome user: \"Bond\" ... \"James\" ... \"Bond\"");
+            expect(template(renderValuesMap)).toEqual('Welcome user: "Bond" ... "James" ... "Bond"');
         });
 
         it('when called with a string', () => {
             const template = strings.lazyTemplate(templateWithStringKeysSingleQuoted, options);
-            expect(template(renderValuesMap)).toEqual("Welcome user: 'Bond' ... 'James' ... 'Bond'");
+            expect(template(renderValuesMap)).toEqual('Welcome user: \'Bond\' ... \'James\' ... \'Bond\'');
         });
 
         it('when called with a string with "key"s', () => {
             const template = strings.lazyTemplate(templateWithDoubleQuotedStringKeys, options);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
-        it("when called with a string with 'key's", () => {
+        it('when called with a string with \'key\'s', () => {
             const template = strings.lazyTemplate(templateWithSingleQuotedStringKeys, options);
-            expect(template(renderValuesMap)).toEqual("Welcome user: Bond ... James ... Bond");
+            expect(template(renderValuesMap)).toEqual('Welcome user: Bond ... James ... Bond');
         });
 
         it('when called a template with no parameters', () => {
@@ -105,7 +105,7 @@ describe('lazyTemplate creates a template function that accepts a Map arguments'
 describe('tokenize', () => {
     describe('non repeating capture groups', () => {
         const text = 'fhname/2020/07/17/01/type-1-2020-07-17-01-03-06-6f6765f9-0e4f-4949-bd9a-ce72be9dfe30';
-        const regex = /^(.*?)\/(\d{4}\/\d{2}\/\d{2}\/\d{2})\/(.*)(?=-\d+-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})-(\d+)-(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})-(.*)$/; //https://regex101.com/r/yQ6Dyn/1
+        const regex = /^(.*?)\/(\d{4}\/\d{2}\/\d{2}\/\d{2})\/(.*)(?=-\d+-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})-(\d+)-(\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})-(.*)$/; // https://regex101.com/r/yQ6Dyn/1
         const regexStr = '^(.*?)\\/(\\d{4}\\/\\d{2}\\/\\d{2}\\/\\d{2})\\/(.*)(?=-\\d+-\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2})-(\\d+)-(\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2})-(.*)$';
         const attributeName = ['fhname', 'rangeStart', 'deliveryStreamName', 'deliveryStreamVersion', 'timestamp', 'uuid'];
         describe('when called with regex string', () => {
@@ -232,20 +232,20 @@ describe('tokenize', () => {
             [' + ', {$5: '+'}],
             [' +5 ', {$5: '+5'}],
             [' +100 ', {$5: '+100'}],
-            [' ? ', {"$4": "?"}],
-            [' ?=default', {"$4": "?=default"}],
-            [' ?=default:10 | +', {"$4": "?=default:10 ", "$5": "+"}],
-            [' ?=default:_xyz:1xyz | +10 ', {"$4": "?=default:_xyz:1xyz ", "$5": "+10"}],
-            [' ?=default:a-b-c:a b c | +10 ', {"$4": "?=default:a-b-c:a b c ", "$5": "+10"}], // TODO: spaces in arguments should be discouraged outside "", Regex limitation of not being a true lexer
-            [' ?=default:"hello":"world of pain" | +10 ', {"$4": "?=default:\"hello\":\"world of pain\"", "$5": "+10"}],
-            [' ?=default:"hello":"world - of - pain" | +10 ', {"$4": "?=default:\"hello\":\"world - of - pain\"", "$5": "+10"}],
-            [' !', {"$4": "!"}],
-            [' !=altSource', {"$4": "!=altSource"}],
-            [' !=altSource:10 | +', {"$4": "!=altSource:10 ", "$5": "+"}],
-            [' !=altSource:_xyz:1xyz | +10 ', {"$4": "!=altSource:_xyz:1xyz ", "$5": "+10"}],
-            [' !=altSource:a-b-c:a b c | +10 ', {"$4": "!=altSource:a-b-c:a b c ", "$5": "+10"}], // TODO: spaces in arguments should be discouraged outside "", Regex limitation of not being a true lexer
-            [' !=altSource:"hello":"world of pain" | +10 ', {"$4": "!=altSource:\"hello\":\"world of pain\"", "$5": "+10"}],
-            [' !=altSource:"hello":"world - of - pain" | +10 ', {"$4": "!=altSource:\"hello\":\"world - of - pain\"", "$5": "+10"}],
+            [' ? ', {$4: '?'}],
+            [' ?=default', {$4: '?=default'}],
+            [' ?=default:10 | +', {$4: '?=default:10 ', $5: '+'}],
+            [' ?=default:_xyz:1xyz | +10 ', {$4: '?=default:_xyz:1xyz ', $5: '+10'}],
+            [' ?=default:a-b-c:a b c | +10 ', {$4: '?=default:a-b-c:a b c ', $5: '+10'}], // TODO: spaces in arguments should be discouraged outside "", Regex limitation of not being a true lexer
+            [' ?=default:"hello":"world of pain" | +10 ', {$4: '?=default:"hello":"world of pain"', $5: '+10'}],
+            [' ?=default:"hello":"world - of - pain" | +10 ', {$4: '?=default:"hello":"world - of - pain"', $5: '+10'}],
+            [' !', {$4: '!'}],
+            [' !=altSource', {$4: '!=altSource'}],
+            [' !=altSource:10 | +', {$4: '!=altSource:10 ', $5: '+'}],
+            [' !=altSource:_xyz:1xyz | +10 ', {$4: '!=altSource:_xyz:1xyz ', $5: '+10'}],
+            [' !=altSource:a-b-c:a b c | +10 ', {$4: '!=altSource:a-b-c:a b c ', $5: '+10'}], // TODO: spaces in arguments should be discouraged outside "", Regex limitation of not being a true lexer
+            [' !=altSource:"hello":"world of pain" | +10 ', {$4: '!=altSource:"hello":"world of pain"', $5: '+10'}],
+            [' !=altSource:"hello":"world - of - pain" | +10 ', {$4: '!=altSource:"hello":"world - of - pain"', $5: '+10'}],
 
                                 // COMBINATIONS
             ['.. | *', {$1: '..', $2: '*'}],
@@ -269,16 +269,16 @@ describe('tokenize', () => {
             ['.1 | ** | : ', {$1: '.1', $2: '**', $3: ':'}],
             ['.10 | ** | : ', {$1: '.10', $2: '**', $3: ':'}],
 
-            ['.. | * | : | + ', {"$1": "..", "$2": "*", "$3": ":", "$5": "+"}],
+            ['.. | * | : | + ', {$1: '..', $2: '*', $3: ':', $5: '+'}],
             ['.1 | * | : | ! ', {$1: '.1', $2: '*', $3: ':', $4: '!'}],
-            ['.1 | * | : | !=source2 ', {"$1": ".1", "$2": "*", "$3": ":", "$4": "!=source2"}],
+            ['.1 | * | : | !=source2 ', {$1: '.1', $2: '*', $3: ':', $4: '!=source2'}],
             ['.10 | * | : | ? ', {$1: '.10', $2: '*', $3: ':', $4: '?'}],
-            ['.10 | * | : | ?=default ', {"$1": ".10", "$2": "*", "$3": ":", "$4": "?=default"}],
-            ['.. | ** | : | + ', {"$1": "..", "$2": "**", "$3": ":", "$5": "+"}],
+            ['.10 | * | : | ?=default ', {$1: '.10', $2: '*', $3: ':', $4: '?=default'}],
+            ['.. | ** | : | + ', {$1: '..', $2: '**', $3: ':', $5: '+'}],
             ['.1 | ** | : | ! ', {$1: '.1', $2: '**', $3: ':', $4: '!'}],
-            ['.1 | ** | : | !=source2:username:password ', {"$1": ".1", "$2": "**", "$3": ":", "$4": "!=source2:username:password "}],
+            ['.1 | ** | : | !=source2:username:password ', {$1: '.1', $2: '**', $3: ':', $4: '!=source2:username:password '}],
             ['.10 | ** | : | ? ', {$1: '.10', $2: '**', $3: ':', $4: '?'}],
-            ['.10 | ** | : | ?=default:10 ', {"$1": ".10", "$2": "**", "$3": ":", "$4": "?=default:10 "}],
+            ['.10 | ** | : | ?=default:10 ', {$1: '.10', $2: '**', $3: ':', $4: '?=default:10 '}],
 
             ['.. | * |#123_foo_bar | + ', {$1: '..', $2: '*', $3: '#123_foo_bar ', $5: '+'}],
             ['.1 | * |#123_foo_bar | + ', {$1: '.1', $2: '*', $3: '#123_foo_bar ', $5: '+'}],
@@ -288,13 +288,13 @@ describe('tokenize', () => {
             ['.10 | ** |#123_foo_bar | + ', {$1: '.10', $2: '**', $3: '#123_foo_bar ', $5: '+'}],
 
             // double my fun?
-            ['.. | .1 | * |#123_foo_bar | + ', {"$1": ".1", "$2": "*", "$3": "#123_foo_bar ", "$5": "+"}], // last one in a group wins
+            ['.. | .1 | * |#123_foo_bar | + ', {$1: '.1', $2: '*', $3: '#123_foo_bar ', $5: '+'}], // last one in a group wins
             ['.1 | * | ** |#123_foo_bar | + ', {$1: '.1', $2: '**', $3: '#123_foo_bar ', $5: '+'}], // last one in a group wins
             ['.10 | * |#123_foo_bar | #somethingelse | + ', {$1: '.10', $2: '*', $3: '#somethingelse ', $5: '+'}], // last one in a group wins
             ['.. | ** |#123_foo_bar | + | ?', {$1: '..', $2: '**', $3: '#123_foo_bar ', $4: '?', $5: '+'}], // last one in a group wins
-            ['.. | ** |#123_foo_bar | + | ?=default:"" | !=altsource:5', {"$1": "..", "$2": "**", "$3": "#123_foo_bar ", "$4": "!=altsource:5", "$5": "+"}], // last one in a group wins
-            ['.1 | ** |#123_foo_bar | + | ?=default:"hello":"world - of - pain" + 10', {"$1": ".1", "$2": "**", "$3": "#123_foo_bar ", "$4": "?=default:\"hello\":\"world - of - pain\"", "$5": "+"}], // last one in a group wins
-            ['.1 | ** |#123_foo_bar | + | ?=default:"hello":"world - of - pain" + 10 | !=altSource:"hello":"world - of - pain" | + 5', {"$1": ".1", "$2": "**", "$3": "#123_foo_bar ", "$4": "?=default:\"hello\":\"world - of - pain\"", "$5": "+"}], // last one in a group wins
+            ['.. | ** |#123_foo_bar | + | ?=default:"" | !=altsource:5', {$1: '..', $2: '**', $3: '#123_foo_bar ', $4: '!=altsource:5', $5: '+'}], // last one in a group wins
+            ['.1 | ** |#123_foo_bar | + | ?=default:"hello":"world - of - pain" + 10', {$1: '.1', $2: '**', $3: '#123_foo_bar ', $4: '?=default:"hello":"world - of - pain"', $5: '+'}], // last one in a group wins
+            ['.1 | ** |#123_foo_bar | + | ?=default:"hello":"world - of - pain" + 10 | !=altSource:"hello":"world - of - pain" | + 5', {$1: '.1', $2: '**', $3: '#123_foo_bar ', $4: '?=default:"hello":"world - of - pain"', $5: '+'}] // last one in a group wins
 
         ];
         const opOOOCombinations = [
@@ -322,7 +322,7 @@ describe('tokenize', () => {
 
             // double my fun?
             [' #123_foo_bar | + | **  | *', {$2: '*', $3: '#123_foo_bar ', $5: '+'}], // currently last operator in group wins
-            [' #123_foo_bar | + | .1  | ! | ? ', {$1: '.1', $3: '#123_foo_bar ', $4: '?', $5: '+'}], // currently last operator in group wins
+            [' #123_foo_bar | + | .1  | ! | ? ', {$1: '.1', $3: '#123_foo_bar ', $4: '?', $5: '+'}] // currently last operator in group wins
         ];
 
         const pipeCombinations = [
@@ -369,7 +369,7 @@ describe('tokenize', () => {
             [' * | foo:1 | bar:1  async ', {$1: 'foo:1', $2: 'bar:1'}],
             [' async | * ', {$1: '*'}],
             [' foo | async:100 | * ', {$1: 'async:100', $2: '*'}],
-            [' foo | bar | async | * ', {$1: 'bar', $2: 'async', $3: '*'}],
+            [' foo | bar | async | * ', {$1: 'bar', $2: 'async', $3: '*'}]
 
 
         ];
@@ -401,11 +401,21 @@ describe('tokenize', () => {
             };
             const alias = ({$1, $2, $3, $4, $5}) => {
                 const expected = {};
-                if ($1) expected[lookup['$1']] = $1;
-                if ($2) expected[lookup['$2']] = $2;
-                if ($3) expected[lookup['$3']] = $3;
-                if ($4) expected[lookup['$4']] = $4;
-                if ($5) expected[lookup['$5']] = $5;
+                if ($1) {
+                    expected[lookup['$1']] = $1;
+                }
+                if ($2) {
+                    expected[lookup['$2']] = $2;
+                }
+                if ($3) {
+                    expected[lookup['$3']] = $3;
+                }
+                if ($4) {
+                    expected[lookup['$4']] = $4;
+                }
+                if ($5) {
+                    expected[lookup['$5']] = $5;
+                }
                 return expected;
             };
 
@@ -430,6 +440,7 @@ describe('tokenize', () => {
         });
 
         describe('captures all pipes along with optional arguments', () => {
+
             /** since RegExp capture groups won't help tokenizing repeated cgs, since it throws away everything but the last one
              * a viable alternative is to use the sequencing logic of tokenize(<global-regex>), where every match iteration extracts one pipe[:arg]*
              * https://regex101.com/r/n2qnj7/4/
@@ -443,7 +454,9 @@ describe('tokenize', () => {
             const lookup = {$1: tokenNames[0]};
             const alias = ({$1}) => {
                 const expected = {};
-                if ($1) expected[lookup['$1']] = $1;
+                if ($1) {
+                    expected[lookup['$1']] = $1;
+                }
                 return expected;
             };
 
@@ -462,20 +475,20 @@ describe('tokenize', () => {
                 const knownPositions = [
                     // $n is ignored if tokenNames[index] exists
                     [' | async | slice::5:-1 | foo | bar | **:-1', {
-                        "(bar)": "bar",
-                        "(foo)": "foo",
-                        "**": "**:-1",
-                        "@": "async",
-                        "[::]": "slice::5:-1"
+                        '(bar)': 'bar',
+                        '(foo)': 'foo',
+                        '**': '**:-1',
+                        '@': 'async',
+                        '[::]': 'slice::5:-1'
                     }],
                     // indexes shift, tokenNames are consumed by an unintended match, also $n kicks in if no alias exists
                     [' | async | slice::5:-1 | foo | async | bar | **:-1', {
-                        "$6": "**:-1",
-                        "(bar)": "async",
-                        "(foo)": "foo",
-                        "**": "bar",
-                        "@": "async",
-                        "[::]": "slice::5:-1"
+                        $6: '**:-1',
+                        '(bar)': 'async',
+                        '(foo)': 'foo',
+                        '**': 'bar',
+                        '@': 'async',
+                        '[::]': 'slice::5:-1'
                     }]
                 ];
                 for (const [pipes, expected] of knownPositions) {
@@ -496,7 +509,7 @@ describe('tokenize', () => {
                             /((?:\d+)|(?:[a-z]+))-?((?:\d+)|(?:[a-z]+))/g
                             , 'a-10-100-b'
                             , {$n: false, sequence: false, cgindex: true})).toEqual(
-                            {"$1": ["a", "100"], "$2": ["10", "b"]}
+                            {$1: ['a', '100'], $2: ['10', 'b']}
                         );
                     });
                     it('destructure matches and only remember the last match', () => {
@@ -504,7 +517,7 @@ describe('tokenize', () => {
                             /((?:\d+)|(?:[a-z]+))-?((?:\d+)|(?:[a-z]+))/g
                             , 'a-10-100-b'
                             , {$n: true, sequence: false, cgindex: true})).toEqual(
-                            {"$1": "100", "$2": "b"}
+                            {$1: '100', $2: 'b'}
                         );
                     });
                     it('sequences matches into partitions indexed by the full-match', () => {
@@ -512,7 +525,7 @@ describe('tokenize', () => {
                             /((?:\d+)|(?:[a-z]+))-?((?:\d+)|(?:[a-z]+))/g
                             , 'a-10-100-b'
                             , {$n: false, sequence: true, cgindex: false})).toEqual(
-                            {"100-b": ["100", "b"], "a-10": ["a", "10"]}
+                            {'100-b': ['100', 'b'], 'a-10': ['a', '10']}
                         );
                     });
                     it('sequences matches indexed by sequential counter', () => {
@@ -520,7 +533,7 @@ describe('tokenize', () => {
                             /((?:\d+)|(?:[a-z]+))-?((?:\d+)|(?:[a-z]+))/g
                             , 'a-10-100-b'
                             , {$n: true, sequence: true, cgindex: false})).toEqual(
-                            {"$1": "a", "$2": "10", "$3": "100", "$4": "b"}
+                            {$1: 'a', $2: '10', $3: '100', $4: 'b'}
                         );
                     });
                 });
@@ -534,11 +547,11 @@ describe('tokenize', () => {
                             cgindex: false
                         })).toEqual(
                             {
-                                " | **:-1": ["**:-1"],
-                                " | async": ["async", "async"],
-                                " | bar": ["bar"],
-                                " | foo": ["foo"],
-                                " | slice::5:-1": ["slice::5:-1"]
+                                ' | **:-1': ['**:-1'],
+                                ' | async': ['async', 'async'],
+                                ' | bar': ['bar'],
+                                ' | foo': ['foo'],
+                                ' | slice::5:-1': ['slice::5:-1']
                             }
                         );
                     });
@@ -549,7 +562,7 @@ describe('tokenize', () => {
                             sequence: true,
                             cgindex: false
                         })).toEqual(
-                            {"$1": "async", "$2": "slice::5:-1", "$3": "foo", "$4": "async", "$5": "bar", "$6": "**:-1"}
+                            {$1: 'async', $2: 'slice::5:-1', $3: 'foo', $4: 'async', $5: 'bar', $6: '**:-1'}
                         );
                     });
                     it('destructure matches into partitions by capture-group number', () => {
@@ -558,7 +571,7 @@ describe('tokenize', () => {
                             sequence: false,
                             cgindex: true
                         })).toEqual(
-                            {"$1": ["async", "slice::5:-1", "foo", "async", "bar", "**:-1"]}
+                            {$1: ['async', 'slice::5:-1', 'foo', 'async', 'bar', '**:-1']}
                         );
                     });
                     it('destructure matches and only remember the last match', () => {
@@ -567,7 +580,7 @@ describe('tokenize', () => {
                             sequence: false,
                             cgindex: true
                         })).toEqual(
-                            {"$1": "**:-1"}
+                            {$1: '**:-1'}
                         );
                     });
                 });

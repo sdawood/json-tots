@@ -2,6 +2,7 @@ language: node_js
 cache:
   directories:
     - node_modules
+    - "$HOME/.npm"
 notifications:
   email: false
 node_js:
@@ -11,9 +12,6 @@ before_install:
 install:
   - npm ci
 # keep the npm cache around to speed up installs
-cache:
-  directories:
-    - "$HOME/.npm"
 before_script:
   - npm prune
 script:

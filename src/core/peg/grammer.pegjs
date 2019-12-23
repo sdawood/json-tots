@@ -37,7 +37,9 @@ SYMBOL_OP
 	= op:":" sym:SYMBOL {return  { operator: op, tag: sym}}
 	/ op:[#|@] sym:SYMBOL {return  { operator: op, tag: sym}}
 
-CONSTRAINT_OP = op:[!?] eq:[=~]? _ src:SOURCE_NAME? _ ":"? _ dVal:VALUE? { return { operator: op, equal: eq, source: src, defaultValue: dVal ? dVal.trim() : dVal}}
+DEFAULT_VALUE = _ ":" _ dVal:VALUE { return dVal }
+
+CONSTRAINT_OP = op:[!?] eq:[=~]? _ src:SOURCE_NAME? dVal:DEFAULT_VALUE? { return { operator: op, equal: eq, source: src, defaultValue: dVal ? dVal.trim() : dVal}}
 
 QUERY_OP  = op:[+-] count:INTEGER? { return { operator: op, count: count}}
 
@@ -49,7 +51,8 @@ PIPES
   / SPREAD_OPERATOR
 
 Pipe
-	= PIPE_SEPARATOR fn:FUNCTION_NAME args:(ARG)* { return {function: fn, args: args}}
+	= PIPE_SEPARATOR fn:FUNCTION_NAME args:(ARG)* { return {function: fn, type: 'inline', args: args}}
+    / PIPE_SEPARATOR '@' fn:FUNCTION_NAME { return {function: fn, type: 'extended', args: []}}
     / PIPE_SEPARATOR spread:SPREAD_OPERATOR { return {function: spread } }
 
 SPREAD_OPERATOR
