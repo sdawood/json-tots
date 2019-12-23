@@ -32,8 +32,8 @@
     "eslint": "~3.18.0",
     "jest": "^20.0.4",
     "rimraf": "^2.6.1",
-    "semantic-release": "^15.9.15",
-    "travis-deploy-once": "^5.0.7",
+    "semantic-release": "^15.14.0",
+    "travis-deploy-once": "^5.0.11",
     "@semantic-release/commit-analyzer": "^6.0.1"
   },
   "config": {
