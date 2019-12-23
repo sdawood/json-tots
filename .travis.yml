@@ -1,8 +1,8 @@
 language: node_js
-cache:
-  directories:
-    - node_modules
-    - "$HOME/.npm"
+#cache:
+#  directories:
+#    - node_modules
+#    - "$HOME/.npm"
 notifications:
   email: false
 node_js:
