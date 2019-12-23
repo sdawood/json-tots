@@ -1,12 +1,12 @@
 language: node_js
-cache:
-  directories:
-    - node_modules
-    - "$HOME/.npm"
+#cache:
+#  directories:
+#    - node_modules
+#    - "$HOME/.npm"
 notifications:
   email: false
 node_js:
-  - '8.12'
+  - '8.16'
 before_install:
   - if [[ `npm -v` != 6* ]]; then npm i -g npm@6.4.1; fi
 install:

@@ -4,6 +4,9 @@ master|develop|npm
 
 # json-tots
 
+## Please take a moment to ...
+[Help keep json-tots alive and support async-json-tots development](https://www.patreon.com/shaady)
+
 `json-tots` offers a JSON Template Of Templates Declarative Transformation and Rendering engine.
 Everything is JSON, the template, the document, and extended arguments for template functions.
 
@@ -203,10 +206,10 @@ json-tots Template String                      | Description
 **Symbol Operator**| Examples: `'{#myTagName{a.b.c}}'`
 `#`| Adds the value to the `tags` mapping if provided, the current JSON node's template-string {{`path`}} is used as `key`
 `#$`| Adds the value to the `tags` mapping if provided, the current JSON node's `template-path` is used as `key`
-`#<LABEL>`| Adds the value to the `tags` mapping if provided, the tag string is used as `key`. Enables `self-referencing` templates in coming version.
+`#<LABEL>`| Adds the value to the `tags` mapping if provided, the tag string is used as `key`. Enables `self-referencing` templates.
 `@Tag\|node-path\|template-string-path`| dereference the prevoius tag {@tag{path-inside-tag or $}}. In case the tag is not yet known, a deferred value is pushed to sources['@@next'] array, which can be used to re-render the result in a number of straight forward ways, e.g. {"path": "$.h","source": "{@price{$}}","tag": "price","tagPath": "price","templatePath": "$"}, left for your reference and future post-processing in next stages
-`:`| `RESERVED`
-`:<LABEL>`| `RESERVED`
+`:`| `See Key Editing Policies Example Below`
+`:<LABEL>`| `See Key Editing Policies Example Below`
 **Enumeration Operators**| Examples: `'{*{a.b.c}}', '{**{a.b.c}}'`
 `*`| Enumerate values of an object
 `**`| Enumerate an object as an array of `[key, value]` pairs
@@ -697,7 +700,7 @@ describe('scenario: key policies', () => {
     };
 
     const tags = {};
-    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_camle_case')}};
+    const sources = {'@@next': [], policy: {collapse_snake_case: require('./extension/policy/collapse_snake_case')}};
 
     it('works: 5', () => {
         const result = transform(template, {sources, tags})(document);
