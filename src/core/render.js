@@ -21,7 +21,7 @@ function renderString(node, derefedList) {
     return rendered;
 }
 
-function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}) {
+function renderStringNode(contextRef, {meta = 0, sources = {default: {}}, tags = {}, functions = {}, args = {}, config} = {}) {
     let refList;
     try {
         refList = parser.parse(contextRef.node);
@@ -42,7 +42,7 @@ function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags
     return {rendered, asts: derefedList};
 }
 
-function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}, document) {
+function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {default: {}}, tags = {}, functions = {}, args = {}, config} = {}, document) {
     // eslint-disable-next-line no-template-curly-in-string
     const missingFunctionError = sx.lazyTemplate('Error: No such builtin function: [${node}]');
     const evaluateArgs = operators.normalizeArgs({functions, args});

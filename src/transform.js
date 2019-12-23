@@ -33,7 +33,7 @@ const {runPolicy} = require('./core/policy/key/run-policy');
  * @param builtins A map of builtin functions, defaults to ./core/builtins.js functions
  * @returns {function(*=): *}
  */
-const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
+const transform = (template, {meta = 0, sources = {default: {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
     let result;
 
     functions = {...bins, ...functions};
@@ -70,7 +70,9 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
                 rendered = node;
             }
 
-            if (self.isRoot) return;
+            if (self.isRoot) {
+                return;
+            }
 
             if (rendered === undefined) {
                 if (jp.value(config, '$.operators.constraints["?"].drop')) {
@@ -95,22 +97,18 @@ const transform = (template, {meta = 0, sources = {'default': {}}, tags = {}, fu
     return result;
 };
 
-const reRenderTags = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
-    return F.reduce((template, {path, tag, source, templatePath, tagPath}) => {
-        const value = tags[tagPath];
-        const rendered = jp.value(template, path).replace(source, value);
-        jp.value(template, path, rendered);
-        return template;
-    }, () => (template), sources['@@next'].filter(job => job['type'] === '@@tag'));
-};
+const reRenderTags = (template, {meta = 0, sources = {default: {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => F.reduce((template, {path, tag, source, templatePath, tagPath}) => {
+    const value = tags[tagPath];
+    const rendered = jp.value(template, path).replace(source, value);
+    jp.value(template, path, rendered);
+    return template;
+}, () => (template), sources['@@next'].filter(job => job['type'] === '@@tag'));
 
-const applyPolicies = (template, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => {
-    return F.reduce((acc, {path, tag, source, templatePath, tagPath}) => {
-        const policy = jp.value(sources, jpify(tag));
-        const {template: rendered, templatePath: tPath} = runPolicy(policy, acc, document)({path, tag, source, templatePath, tagPath});
-        return rendered;
-    }, () => (template), sources['@@next'].filter(job => job['type'] === '@@policy'));
-};
+const applyPolicies = (template, {meta = 0, sources = {default: {}}, tags = {}, functions = {}, args = {}, config = defaultConfig} = {}, {builtins = bins} = {}) => document => F.reduce((acc, {path, tag, source, templatePath, tagPath}) => {
+    const policy = jp.value(sources, jpify(tag));
+    const {template: rendered, templatePath: tPath} = runPolicy(policy, acc, document)({path, tag, source, templatePath, tagPath});
+    return rendered;
+}, () => (template), sources['@@next'].filter(job => job['type'] === '@@policy'));
 
 module.exports = {
     transform,

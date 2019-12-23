@@ -3,7 +3,7 @@ const F = require('functional-pipelines');
 // JSON.stringify return empty object for Error otherwise
 if (!('toJSON' in Error.prototype)) {
     Object.defineProperty(Error.prototype, 'toJSON', {
-        value: function () {
+        value () {
             const alt = {};
 
             Object.getOwnPropertyNames(this).forEach(function (key) {

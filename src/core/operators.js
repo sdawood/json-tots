@@ -104,7 +104,7 @@ const symbol = ({tags, context, sources}) => (ast, {meta = 2} = {}) => {
             const job = {
                 type: '@@policy',
                 path: jp.stringify(context.path),
-                tag: tag,
+                tag,
                 source: ast.source,
                 templatePath: '',
                 tagPath: ast.path
@@ -200,10 +200,10 @@ const parseTextArgs = (...args) => {
     };
 
     const literals = {
-        'true': true,
-        'false': false,
-        'null': null,
-        'undefined': undefined,
+        true: true,
+        false: false,
+        null: null,
+        undefined,
         __: F.__
     };
 
@@ -218,9 +218,7 @@ const normalizeArgs = ({functions, args}) => ([fnPath, fnKey, fnName], data) => 
 
     const fnArgList = F.isArray(fnArgs) ? fnArgs : [fnArgs];
 
-    const argList = F.map(arg => {
-        return arg.path ? jp.value(data, arg.path) : arg.value !== undefined ? arg.value : arg;
-    }, fnArgList);
+    const argList = F.map(arg => arg.path ? jp.value(data, arg.path) : arg.value !== undefined ? arg.value : arg, fnArgList);
 
     return argList;
 };
@@ -285,6 +283,7 @@ const pipeOperator = ({functions, args, sources, context}) => F.composes(pipe({f
  */
 const inception = options => (ast, enumerable, {meta = 5} = {}) => {
     const ops = {
+
         /**
          * Renders node n in current scope, render n+1 using n as scoped-document, effectively recurring into smaller scopes
          * @param ast
@@ -295,9 +294,7 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
             const [inceptionNode] = enumerable;
             const {transform} = require('../transform'); // lazy require to break cyclic dependency
             const scopedDocument = transform(inceptionNode, options)(options.sources.origin);
-            return [F.reduce((rendered, nestedTemplate) => {
-                return transform(nestedTemplate, options)(rendered);
-            }, () => scopedDocument, enumerable)];
+            return [F.reduce((rendered, nestedTemplate) => transform(nestedTemplate, options)(rendered), () => scopedDocument, enumerable)];
         },
 
         /**
@@ -340,14 +337,14 @@ const inception = options => (ast, enumerable, {meta = 5} = {}) => {
     const opFn = ops[operator];
 
     const result = opFn(ast, enumerable, options);
-    return result; //enumerable
+    return result; // enumerable
 };
 
 const inceptionPreprocessor = ast => {
 // eslint-disable-next-line prefer-const
     let {operator, repeat} = ast.operators.inception;
     repeat = repeat === '*' ? Number.POSITIVE_INFINITY : repeat;
-    return {...ast, operator: operator, $depth: repeat};
+    return {...ast, operator, $depth: repeat};
 };
 
 const applyAll = ({meta, sources, tags, functions, args, context, config, stages}) => F.composes(

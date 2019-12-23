@@ -46,7 +46,7 @@ const document = Object.freeze({
             {
                 author: 'user1@domain1.com',
                 'first.name': 'user1',
-                comment: "Excellent! Can't recommend it highly enough! Buy it!",
+                comment: 'Excellent! Can\'t recommend it highly enough! Buy it!',
                 score: 5,
                 viewAs: '*****'
             },
@@ -106,7 +106,7 @@ describe('jsonpath deref and string template interpolation', () => {
             active: true
         },
         safety: document['Safety.Warning.On.Root'],
-        topRaters: ["user1", "user2", "user3", 10, null, true], // array in template didn't have special semantics
+        topRaters: ['user1', 'user2', 'user3', 10, null, true], // array in template didn't have special semantics
         topTaggers: 'memberUser4 - memberUser5 - memberUser6',
         oneScore: 1,
         users: 'user3@domain3.com',
@@ -166,10 +166,10 @@ describe('simple interpolation with query modifiers with [ NO ] arguments + cons
         },
         safety: document['Safety.Warning.On.Root'],
         topRaters: 'user1 - user2 - user3',
-        topTaggers: "memberUser4 - memberUser5 - memberUser6",
+        topTaggers: 'memberUser4 - memberUser5 - memberUser6',
         scores: [5, 5, 1],
         oneScore: 1,
-        users: ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
+        users: ['anonymousUser1', 'anonymousUser2', 'memberUser3', 'memberUser4', 'memberUser5', 'memberUser6', 'user1@domain1.com', 'user2@domain2.com', 'user3@domain3.com'],
         optionalInContext: 'Value for not.there = ',
         required: null
     };
@@ -233,37 +233,37 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        "name": "Bicycle 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
-        "oneScore": 1,
-        "optional1": "@default::default-value",
-        "optional2": "OPTIONAL DEFAULT VALUE 2",
-        "optional2Quoted": "\"OPTIONAL DEFAULT VALUE 2\"",
-        "optional3": "optional-default-value-3",
-        "optionalInContext1": "Value for not.there = @default::default-value",
-        "optionalInContext2": "Value for not.there = \"\"",
-        "optionalInContext3": "Value for not.there = default value",
-        "optionalInContext3Quoted": "Value for not.there = \"default value in quotes\"",
-        "required": null,
-        "required1": null,
-        "required2": "@alt-source::alt-value",
-        "required3": null,
-        "required4": "ALT_VALUE_DEFAULT",
-        "required5": null,
-        "required6": null,
-        "required7": "ALT_VALUE_DEFAULT",
-        "reviews": {
-            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer",
-            "eula": "read and agree and let us get on with it",
-            "high": "Excellent! Can't recommend it highly enough! Buy it!",
-            "low": "Terrible product! Do no buy this."
+        name: 'Bicycle 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123',
+        oneScore: 1,
+        optional1: '@default::default-value',
+        optional2: 'OPTIONAL DEFAULT VALUE 2',
+        optional2Quoted: '"OPTIONAL DEFAULT VALUE 2"',
+        optional3: 'optional-default-value-3',
+        optionalInContext1: 'Value for not.there = @default::default-value',
+        optionalInContext2: 'Value for not.there = ""',
+        optionalInContext3: 'Value for not.there = default value',
+        optionalInContext3Quoted: 'Value for not.there = "default value in quotes"',
+        required: null,
+        required1: null,
+        required2: '@alt-source::alt-value',
+        required3: null,
+        required4: 'ALT_VALUE_DEFAULT',
+        required5: null,
+        required6: null,
+        required7: 'ALT_VALUE_DEFAULT',
+        reviews: {
+            disclaimer: 'Ad: /HOME/This product sells out quickly during the summer',
+            eula: 'read and agree and let us get on with it',
+            high: 'Excellent! Can\'t recommend it highly enough! Buy it!',
+            low: 'Terrible product! Do no buy this.'
         },
-        "safety": "Always wear a helmet",
-        "scores": [5, 5],
-        "skip2users": ["memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"],
-        "top5users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
-        "topRaters": "user1 - user2 - user3",
-        "topTaggers": "memberUser4 - memberUser5 - memberUser6",
-        "users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5", "memberUser6", "user1@domain1.com", "user2@domain2.com", "user3@domain3.com"]
+        safety: 'Always wear a helmet',
+        scores: [5, 5],
+        skip2users: ['memberUser3', 'memberUser4', 'memberUser5', 'memberUser6', 'user1@domain1.com', 'user2@domain2.com', 'user3@domain3.com'],
+        top5users: ['anonymousUser1', 'anonymousUser2', 'memberUser3', 'memberUser4', 'memberUser5'],
+        topRaters: 'user1 - user2 - user3',
+        topTaggers: 'memberUser4 - memberUser5 - memberUser6',
+        users: ['anonymousUser1', 'anonymousUser2', 'memberUser3', 'memberUser4', 'memberUser5', 'memberUser6', 'user1@domain1.com', 'user2@domain2.com', 'user3@domain3.com']
     };
 
     let result;
@@ -273,7 +273,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     beforeEach(() => {
         result = transform(templateClone, {
             sources: {
-                'default': {'not.there': '@default::default-value'},
+                default: {'not.there': '@default::default-value'},
                 altSource1: {'not.there': '@alt-source::alt-value'}
             }
         })(documentClone);
@@ -330,37 +330,37 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     };
 
     const expectedResult = {
-        "expensive": true,
-        "name": "BICYCLE 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123",
-        "oneScore": 1,
-        "optional1": "@default::default-value",
-        "optional2": "OPTIONAL DEFAULT VALUE 2",
-        "optional2Quoted": "\"OPTIONAL DEFAULT VALUE 2\"",
-        "optional3": "optional-default-value-3",
-        "optionalInContext1": "Value for not.there = @default::default-value",
-        "optionalInContext2": "Value for not.there = \"\"",
-        "optionalInContext3": "Value for not.there = default value",
-        "optionalInContext3Quoted": "Value for not.there = \"default value in quotes\"",
-        "required": null,
-        "required1": null,
-        "required2": "@alt-source::alt-value",
-        "required3": null,
-        "required4": "ALT_VALUE_DEFAULT",
-        "required5": null,
-        "required6": null,
-        "required7": "ALT_VALUE_DEFAULT",
-        "reviews": {
-            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer",
-            "eula": "read and agree and let us get on with it",
-            "high": "Excellent! Can't recommend it highly enough! Buy it!",
-            "low": "Terrible product! Do no buy this."
+        expensive: true,
+        name: 'BICYCLE 123 [Bicycle 123 is a fabulous item that you have to spend all your money on] http://items/Bicycle 123',
+        oneScore: 1,
+        optional1: '@default::default-value',
+        optional2: 'OPTIONAL DEFAULT VALUE 2',
+        optional2Quoted: '"OPTIONAL DEFAULT VALUE 2"',
+        optional3: 'optional-default-value-3',
+        optionalInContext1: 'Value for not.there = @default::default-value',
+        optionalInContext2: 'Value for not.there = ""',
+        optionalInContext3: 'Value for not.there = default value',
+        optionalInContext3Quoted: 'Value for not.there = "default value in quotes"',
+        required: null,
+        required1: null,
+        required2: '@alt-source::alt-value',
+        required3: null,
+        required4: 'ALT_VALUE_DEFAULT',
+        required5: null,
+        required6: null,
+        required7: 'ALT_VALUE_DEFAULT',
+        reviews: {
+            disclaimer: 'Ad: /HOME/This product sells out quickly during the summer',
+            eula: 'read and agree and let us get on with it',
+            high: 'Excellent! Can\'t recommend it highly enough! Buy it!',
+            low: 'Terrible product! Do no buy this.'
         },
-        "safety": "Always wear ...",
-        "scores": [5, 5],
-        "top5users": ["anonymousUser1", "anonymousUser2", "memberUser3", "memberUser4", "memberUser5"],
-        "topRaters": "user1 - user2 - user3",
-        "topTaggers": "memberUser4 - memberUser5 - memberUser6",
-        "users": ["anonymousUser1", "anonymousUser2"]
+        safety: 'Always wear ...',
+        scores: [5, 5],
+        top5users: ['anonymousUser1', 'anonymousUser2', 'memberUser3', 'memberUser4', 'memberUser5'],
+        topRaters: 'user1 - user2 - user3',
+        topTaggers: 'memberUser4 - memberUser5 - memberUser6',
+        users: ['anonymousUser1', 'anonymousUser2']
     };
 
     let result;
@@ -370,7 +370,7 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     beforeEach(() => {
         result = transform(templateClone, {
             sources: {
-                'default': {'not.there': '@default::default-value'},
+                default: {'not.there': '@default::default-value'},
                 altSource1: {'not.there': '@alt-source::alt-value'}
             },
             functions: {
@@ -410,7 +410,7 @@ describe('inception, apply first element as `document` to n successor array elem
             disclaimer: 'Ad: {{comment}}'
         },
         reviewsSummary: [
-            '{>>>{productReview}}', //use this after rendering as a scoped-document, render next n templates with it
+            '{>>>{productReview}}', // use this after rendering as a scoped-document, render next n templates with it
             '{+{$..score}}',
             {summary: {fiveStar: '{{fiveStar.length}}', oneStar: '{{oneStar.length}}'}}
         ], // render next n nodes with leading rendered item as scoped-document
@@ -422,21 +422,21 @@ describe('inception, apply first element as `document` to n successor array elem
     };
 
     const expectedResult = {
-        "name": "Bicycle 123",
-        "reviews": {
-            "high": [1, 2, "prelude", {"keyBefore": "literal value before"}, ["a", "b", "c"], 2, {
-                "praise": ["user1@domain1.com", "Excellent! Can't recommend it highly enough! Buy it!"],
-                "stars": "*****"
-            }, {"keyAfter": "literal value after"}],
-            "low": [{"criticism": "Terrible product! Do no buy this."}, {"count": 1}],
-            "disclaimer": "Ad: /HOME/This product sells out quickly during the summer"
+        name: 'Bicycle 123',
+        reviews: {
+            high: [1, 2, 'prelude', {keyBefore: 'literal value before'}, ['a', 'b', 'c'], 2, {
+                praise: ['user1@domain1.com', 'Excellent! Can\'t recommend it highly enough! Buy it!'],
+                stars: '*****'
+            }, {keyAfter: 'literal value after'}],
+            low: [{criticism: 'Terrible product! Do no buy this.'}, {count: 1}],
+            disclaimer: 'Ad: /HOME/This product sells out quickly during the summer'
         },
-        "reviewsSummary": [[5, 5, 1], {"summary": {"fiveStar": 2, "oneStar": 1}}],
-        "views": ["[front](2)", "[rear](2)", "[side](2)"],
-        "twoimages": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> Not Available"],
-        "images": ["front -> http://example.com/products/123_front_small.jpg", "rear -> http://example.com/products/123_rear_small.jpg", "side -> http://example.com/products/123_left_side_small.jpg"],
-        "recursive3": [document.productReview.fiveStar[1].comment, document.description],
-        "recursive2": [document.productReview.fiveStar[1], document.comment, document.description]
+        reviewsSummary: [[5, 5, 1], {summary: {fiveStar: 2, oneStar: 1}}],
+        views: ['[front](2)', '[rear](2)', '[side](2)'],
+        twoimages: ['front -> http://example.com/products/123_front_small.jpg', 'rear -> http://example.com/products/123_rear_small.jpg', 'side -> Not Available'],
+        images: ['front -> http://example.com/products/123_front_small.jpg', 'rear -> http://example.com/products/123_rear_small.jpg', 'side -> http://example.com/products/123_left_side_small.jpg'],
+        recursive3: [document.productReview.fiveStar[1].comment, document.description],
+        recursive2: [document.productReview.fiveStar[1], document.comment, document.description]
     };
 
     let result;
@@ -462,37 +462,37 @@ describe('flatten and doubleFlatten pipes`} | * | ** }`', () => {
     };
 
     const expectedResult = {
-        "allReviews": [{
-            "author": "user1@domain1.com",
-            "comment": "Excellent! Can't recommend it highly enough! Buy it!",
-            "first.name": "user1",
-            "score": 5,
-            "viewAs": "*****"
+        allReviews: [{
+            author: 'user1@domain1.com',
+            comment: 'Excellent! Can\'t recommend it highly enough! Buy it!',
+            'first.name': 'user1',
+            score: 5,
+            viewAs: '*****'
         }, {
-            "author": "user2@domain2.com",
-            "comment": "Do yourself a favor and buy this.",
-            "first.name": "user2",
-            "score": 5,
-            "viewAs": "*****"
+            author: 'user2@domain2.com',
+            comment: 'Do yourself a favor and buy this.',
+            'first.name': 'user2',
+            score: 5,
+            viewAs: '*****'
         }, {
-            "author": "user3@domain3.com",
-            "comment": "Terrible product! Do no buy this.",
-            "first.name": "user3",
-            "score": 1,
-            "viewAs": "*----"
+            author: 'user3@domain3.com',
+            comment: 'Terrible product! Do no buy this.',
+            'first.name': 'user3',
+            score: 1,
+            viewAs: '*----'
         }],
-        "fiveStar": [{
-            "author": "user1@domain1.com",
-            "comment": "Excellent! Can't recommend it highly enough! Buy it!",
-            "first.name": "user1",
-            "score": 5,
-            "viewAs": "*****"
+        fiveStar: [{
+            author: 'user1@domain1.com',
+            comment: 'Excellent! Can\'t recommend it highly enough! Buy it!',
+            'first.name': 'user1',
+            score: 5,
+            viewAs: '*****'
         }, {
-            "author": "user2@domain2.com",
-            "comment": "Do yourself a favor and buy this.",
-            "first.name": "user2",
-            "score": 5,
-            "viewAs": "*****"
+            author: 'user2@domain2.com',
+            comment: 'Do yourself a favor and buy this.',
+            'first.name': 'user2',
+            score: 5,
+            viewAs: '*****'
         }]
     };
 
@@ -522,7 +522,7 @@ describe('tagging with or without label', () => {
         }
     };
 
-    const expectedResult = {"a": {"b": {"c": "Bicycle 123", "d": 123}}};
+    const expectedResult = {a: {b: {c: 'Bicycle 123', d: 123}}};
 
     let result;
     const templateClone = traverse(template).clone();
@@ -537,7 +537,7 @@ describe('tagging with or without label', () => {
     });
 
     it('sets the tagged values into tags either by label or path', () => {
-        expect(tags).toEqual({"title": "Bicycle 123", "id": 123}); //tag with no name uses the tagged node's path
+        expect(tags).toEqual({title: 'Bicycle 123', id: 123}); // tag with no name uses the tagged node's path
     });
 
 
@@ -582,15 +582,15 @@ describe('@function expression node, with pipes and args node', () => {
     const echoArgs = (...args) => F.reduced(args);
 
     const expectedResult = {
-        "age": "Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47",
-        "id": "4213ad4...",
-        "stockSummary": "true--100----100--1000",
-        "updateAt": "2018-09-11T00:20:08.411Z",
+        age: 'Now: [2018-09-11T00:20:08.411Z], last update: 2017-10-13T10:37:47',
+        id: '4213ad4...',
+        stockSummary: 'true--100----100--1000',
+        updateAt: '2018-09-11T00:20:08.411Z',
         expensive: true,
         pictures: '[\n  "http://example.com/products/123_front_small.jpg",\n  "http://example.com/products/123_rear_small.jpg",\n  "http://example.com/products/123_left_side_small.jpg"\n]',
-        LDPictures: "[{\"view\":\"front\",\"images\":[{\"big\":\"http://example.com/products/123_front.jpg\"},{\"thumbnail\":\"http://example.com/products/123_front_small.jpg\"}]},{\"view\":\"rear\",\"images\":[{\"big\":\"http://example.com/products/123_rear.jpg\"},{\"thumbnail\":\"http://example.com/products/123_rear_small.jpg\"}]},{\"view\":\"side\",\"images\":[{\"big\":\"http://example.com/products/123_left_side.jpg\"},{\"thumbnail\":\"http://example.com/products/123_left_side_small.jpg\"}]}]",
-        "injectedFunction": "hello world",
-        "echo": [1, 1000, 0.5, 100.99, true, false, null, undefined, 123]
+        LDPictures: '[{"view":"front","images":[{"big":"http://example.com/products/123_front.jpg"},{"thumbnail":"http://example.com/products/123_front_small.jpg"}]},{"view":"rear","images":[{"big":"http://example.com/products/123_rear.jpg"},{"thumbnail":"http://example.com/products/123_rear_small.jpg"}]},{"view":"side","images":[{"big":"http://example.com/products/123_left_side.jpg"},{"thumbnail":"http://example.com/products/123_left_side_small.jpg"}]}]',
+        injectedFunction: 'hello world',
+        echo: [1, 1000, 0.5, 100.99, true, false, null, undefined, 123]
     };
 
     let result;
@@ -618,19 +618,19 @@ describe('scenario: tags string-templates into tags mapping', () => {
 
     const tags = {};
     const expectedTags = {
-        "$.a": 123,
-        "$.b.e": "Brand-Company C",
-        "price": 500,
-        "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47"
+        '$.a': 123,
+        '$.b.e': 'Brand-Company C',
+        price: 500,
+        title: 'Bicycle 123',
+        updatedAt: '2017-10-13T10:37:47'
     };
 
     it('works: inserts tags as keys into the tags mapping with dereferences value as value and contextRef as ctx', () => {
         const result = transform(template, {tags})(document);
         const expectedResult = {
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500]
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500]
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
@@ -649,23 +649,23 @@ describe('scenario: self reference staged transform 1', () => {
 
     const tags = {};
     const expectedTags = {
-        "$.a": 123,
-        "$.b.e": "Brand-Company C",
-        "price": 500,
-        "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47",
-        "color[0]": "Red"
+        '$.a': 123,
+        '$.b.e': 'Brand-Company C',
+        price: 500,
+        title: 'Bicycle 123',
+        updatedAt: '2017-10-13T10:37:47',
+        'color[0]': 'Red'
     };
 
     it('works: 1', () => {
         const result = transform(template, {tags})(document);
         const expectedResult = {
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500],
-            "g": "Red",
-            "h": 500,
-            "i": "Red from 123"
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500],
+            g: 'Red',
+            h: 500,
+            i: 'Red from 123'
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
@@ -684,23 +684,23 @@ describe('scenario: self reference staged transform 2', () => {
 
     const tags = {};
     const expectedTags = {
-        "$.a": 123,
-        "$.b.e": "Brand-Company C",
-        "price": 500,
-        "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47",
-        "color[0]": "Red"
+        '$.a': 123,
+        '$.b.e': 'Brand-Company C',
+        price: 500,
+        title: 'Bicycle 123',
+        updatedAt: '2017-10-13T10:37:47',
+        'color[0]': 'Red'
     };
 
     it('works: 2', () => {
         const result = transform(template, {tags})(document);
         const expectedResult = {
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500],
-            "g": "Red",
-            "h": 500,
-            "i": "{@color[0]{$}} from 123"
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500],
+            g: 'Red',
+            h: 500,
+            i: '{@color[0]{$}} from 123'
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
@@ -709,38 +709,38 @@ describe('scenario: self reference staged transform 2', () => {
 
 describe('scenario: self reference staged transform 3', () => {
     const template = {
-        "a": "123 Bicycle 123",
-        "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-        "f": [500],
-        "g": "Red",
-        "h": "{@price{$}}",
-        "i": "{@color[0]{$}} from 123",
-        "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-        "z": "2016MMDDHHmmssSSS"
+        a: '123 Bicycle 123',
+        b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+        f: [500],
+        g: 'Red',
+        h: '{@price{$}}',
+        i: '{@color[0]{$}} from 123',
+        x: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+        z: '2016MMDDHHmmssSSS'
     };
 
     const sources = {'@@next': []};
     const tags = {
-        "$.a": 123,
-        "$.b.e": "Brand-Company C",
-        "color[0]": "Red",
-        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-        "price": 500,
-        "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47"
+        '$.a': 123,
+        '$.b.e': 'Brand-Company C',
+        'color[0]': 'Red',
+        hotTags: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+        price: 500,
+        title: 'Bicycle 123',
+        updatedAt: '2017-10-13T10:37:47'
     };
 
     it('works: 3', () => {
         const result = transform(template, {sources, tags})(document);
         const expectedResult = {
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500],
-            "g": "Red",
-            "h": 500,
-            "i": "Red from 123",
-            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-            "z": "2016MMDDHHmmssSSS"
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500],
+            g: 'Red',
+            h: 500,
+            i: 'Red from 123',
+            x: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+            z: '2016MMDDHHmmssSSS'
         };
         expect(result).toEqual(expectedResult);
     });
@@ -762,64 +762,64 @@ describe('scenario: self reference staged transform 4', () => {
     const tags = {};
     const sources = {'@@next': []};
     const expectedTags = {
-        "$.a": 123,
-        "$.b.e": "Brand-Company C",
-        "color[0]": "Red",
-        "hotTags": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-        "price": 500,
-        "title": "Bicycle 123",
-        "updatedAt": "2017-10-13T10:37:47"
+        '$.a': 123,
+        '$.b.e': 'Brand-Company C',
+        'color[0]': 'Red',
+        hotTags: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+        price: 500,
+        title: 'Bicycle 123',
+        updatedAt: '2017-10-13T10:37:47'
     };
 
     it('works: 4', () => {
         const result = transform(template, {sources, tags})(document);
         const expectedResult = {
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500],
-            "g": "Red",
-            "h": "{@price{$}}",
-            "i": "{@color[0]{$}} from 123",
-            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-            "z": "2016MMDDHHmmssSSS"
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500],
+            g: 'Red',
+            h: '{@price{$}}',
+            i: '{@color[0]{$}} from 123',
+            x: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+            z: '2016MMDDHHmmssSSS'
         };
         expect(result).toEqual(expectedResult);
         expect(tags).toEqual(expectedTags);
         expect(sources['@@next']).toEqual([
             {
-                "path": "$.i",
-                "source": "{@color[0]{$}}",
-                "tag": "color[0]",
-                "tagPath": "color[0]",
-                "templatePath": "$",
-                "type": "@@tag"
+                path: '$.i',
+                source: '{@color[0]{$}}',
+                tag: 'color[0]',
+                tagPath: 'color[0]',
+                templatePath: '$',
+                type: '@@tag'
             }, {
-                "path": "$.h",
-                "source": "{@price{$}}",
-                "tag": "price",
-                "tagPath": "price",
-                "templatePath": "$",
-                "type": "@@tag"
+                path: '$.h',
+                source: '{@price{$}}',
+                tag: 'price',
+                tagPath: 'price',
+                templatePath: '$',
+                type: '@@tag'
             }]
         );
 
         const final = reRenderTags(result, {tags, sources})(document);
         expect(final).toEqual({
-            "a": "123 Bicycle 123",
-            "b": {"c": "2017-10-13T10:37:47 is equivalent to", "d": "2017-10-13T10:37:47", "e": "Brand-Company C"},
-            "f": [500],
-            "g": "Red",
-            "h": "500",
-            "i": "Red from 123",
-            "x": {"author": "anonymousUser1", "timestamp": "2016MMDDHHmmssSSS"},
-            "z": "2016MMDDHHmmssSSS"
+            a: '123 Bicycle 123',
+            b: {c: '2017-10-13T10:37:47 is equivalent to', d: '2017-10-13T10:37:47', e: 'Brand-Company C'},
+            f: [500],
+            g: 'Red',
+            h: '500',
+            i: 'Red from 123',
+            x: {author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS'},
+            z: '2016MMDDHHmmssSSS'
         });
     });
 });
 
 describe('scenario: key policies', () => {
     const template = {
-        'TAGS': {
+        TAGS: {
             hot: '{:policy.collapse_snake_case {tags.hot.author}}', // transplanted under new parent and child keys by policy
             seasonal: '{{tags.seasonal.author}}}', // stays under the original key
             personalTransportation: '{:policy.collapse_snake_case {tags.personalTransportation.author}}' // transplanted under new parent and child keys by policy
@@ -832,40 +832,40 @@ describe('scenario: key policies', () => {
     it('works: 5', () => {
         const result = transform(template, {sources, tags})(document);
         const expectedResult = {
-            "TAGS": {
-                "hot": "anonymousUser1",
-                "personalTransportation": "memberUser3",
-                "seasonal": "anonymousUser2}"
+            TAGS: {
+                hot: 'anonymousUser1',
+                personalTransportation: 'memberUser3',
+                seasonal: 'anonymousUser2}'
             }
         };
         expect(result).toEqual(expectedResult);
         expect(sources['@@next']).toEqual([
             {
-                "path": "$.TAGS.hot",
-                "source": "{:policy.collapse_snake_case {tags.hot.author}}",
-                "tag": "policy.collapse_snake_case",
-                "tagPath": "tags.hot.author",
-                "templatePath": "",
-                "type": "@@policy"
+                path: '$.TAGS.hot',
+                source: '{:policy.collapse_snake_case {tags.hot.author}}',
+                tag: 'policy.collapse_snake_case',
+                tagPath: 'tags.hot.author',
+                templatePath: '',
+                type: '@@policy'
             }, {
-                "path": "$.TAGS.personalTransportation",
-                "source": "{:policy.collapse_snake_case {tags.personalTransportation.author}}",
-                "tag": "policy.collapse_snake_case",
-                "tagPath": "tags.personalTransportation.author",
-                "templatePath": "",
-                "type": "@@policy"
+                path: '$.TAGS.personalTransportation',
+                source: '{:policy.collapse_snake_case {tags.personalTransportation.author}}',
+                tag: 'policy.collapse_snake_case',
+                tagPath: 'tags.personalTransportation.author',
+                templatePath: '',
+                type: '@@policy'
             }
         ]);
 
         const policyApplied = applyPolicies(result, {tags, sources})(document);
         expect(policyApplied).toEqual({
-            "TAGS": {
-                "hot": undefined,
-                "personalTransportation": undefined,
-                "seasonal": "anonymousUser2}"
+            TAGS: {
+                hot: undefined,
+                personalTransportation: undefined,
+                seasonal: 'anonymousUser2}'
             },
-            "tags_hot_author": "anonymousUser1",
-            "tags_personal_transportation_author": "memberUser3"
+            tags_hot_author: 'anonymousUser1',
+            tags_personal_transportation_author: 'memberUser3'
         });
     });
 });
@@ -875,29 +875,43 @@ describe('evaluates @foo within template "} pipes }" with extendedArgs', () => {
         const template = {
             a: {
                 b: {
-                    pipeWithExtendedArgs: '{{inStockCount} | @classify | toUpperCase | intoRecord | stringify:__:null:0 }'
+                    pipeWithExtendedArgs: '{{inStockCount} | @classify | stringify:__:null:0 }'
                 }
             }
         };
 
         const functions = {
-            classify: (low, high) => value => value <= low ? 'low' : value >= high ? 'high' : 'ok',
-            intoRecord: classification => ({classification})
+            classify: (low, high, colors) => value => value <= low ? {level: 'low', colors} : value >= high ? {level: 'high', colors} : {level: 'ok', colors}
         };
 
-        const args = {
+        const argsPath = {
             '$.a.b.pipeWithExtendedArgs': [
                 10,
-                80
+                80,
+                {path: '$.color'}
             ]
         };
-        const result = transform(template, {functions, args})(document);
-        expect(result).toEqual({
-            "a": {
-                "b": {
-                    "pipeWithExtendedArgs": "{\"classification\":\"HIGH\"}"
-                }
-            }
-        });
+
+        const argsKey = {
+            pipeWithExtendedArgs: [
+                10,
+                80,
+                {path: '$.color'}
+            ]
+        };
+
+        const argsName = {
+            classify: [
+                10,
+                80,
+                {path: '$.color'}
+            ]
+        };
+
+        const expectedResult = {a: {b: {pipeWithExtendedArgs: '{"level":"high","colors":["Red","Black","White"]}'}}};
+
+        expect(transform(template, {functions, args: argsPath})(document)).toEqual(expectedResult);
+        expect(transform(template, {functions, args: argsKey})(document)).toEqual(expectedResult);
+        expect(transform(template, {functions, args: argsName})(document)).toEqual(expectedResult);
     });
 });

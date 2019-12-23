@@ -49,7 +49,9 @@ function * tokenGenerator(regex, str, {sequence = false} = {}) {
     regex = new RegExp(regex); // normalize string and regex args, also refresh exhausted regex
     const multi = regex.flags.includes('g');
     let matches = regex.exec(str);
-    if (matches === null) return;
+    if (matches === null) {
+        return;
+    }
     let lastIndex;
     do {
         lastIndex = matches.index;
@@ -80,7 +82,9 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         // interpolation, find all placeholders with the intention of later replacement, a placeholder might repeat, and there is no notion of $1 $2 as specific capture groups
         const tokenIter = F.iterator(tokenGenerator(regex, str, {sequence}), {indexed: true});
         return F.reduce((acc, [{match, token, cgi}, index]) => {
-            if (!cgindex && token == null) return acc;
+            if (!cgindex && token == null) {
+                return acc;
+            }
             cgi = cgi0 ? cgi - 1 : cgi;
             // since index shift, lookup of aliases is not straight forward unless matched pattern is known upfront
 
@@ -110,12 +114,13 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
                 acc[key][cgi] = [token];
             } else if (groupByMatch) {
                 acc[key] = [token];
-            } else /*if ($n)*/ {
+            } else /* if ($n)*/ {
                 acc[key] = token;
             }
             return acc;
         }, () => ({}), tokenIter);
     } else {
+
         /**
          * currently this mode doesn't have the source (full-match)
          * capture groups oriented parser, with repeated multi-capture-group regex
@@ -129,7 +134,9 @@ function tokenize(regex, str, {tokenNames = [], $n = true, cgindex = false, cgi0
         const tokenIter = F.iterator(tokenGenerator(regex, str));
         return F.reduce((acc, matches) => {
             for (const [index, token] of matches.entries()) {
-                if (token == null) continue;
+                if (token == null) {
+                    continue;
+                }
                 const key = tokenNames[index] || `$${index + 1}`;
                 // acc[key] = token;
                 acc[key] = acc[key] ? $n ? token : [...acc[key], token] : $n ? token : [token];
@@ -164,7 +171,9 @@ function templatePlaceholders(template, {placeholder: {open = '${', close = '}'}
     while ((matches = regex.exec(template)) !== null) {
         mapping[matches[1]] = matches[0];
     }
-    if (!Object.keys(mapping).length) throw new Error(`Template has no parameters matching ${regex.source}`);
+    if (!Object.keys(mapping).length) {
+        throw new Error(`Template has no parameters matching ${regex.source}`);
+    }
     return mapping;
 }
 
