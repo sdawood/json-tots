@@ -212,47 +212,68 @@ const parseTextArgs = (...args) => {
     return F.map(parseText, args);
 };
 
-const pipe = ({functions}) => (ast, {meta = 5} = {}) => {
+const normalizeArgs = ({functions, args}) => ([fnPath, fnKey, fnName], data) => {
+    const fnArgs = args[fnPath] || args[fnKey] || args[fnName];
+    if (fnArgs === undefined) return [];
+
+    const fnArgList = F.isArray(fnArgs) ? fnArgs : [fnArgs];
+
+    const argList = F.map(arg => {
+        return arg.path ? jp.value(data, arg.path) : arg.value !== undefined ? arg.value : arg;
+    }, fnArgList);
+
+    return argList;
+};
+
+const pipe = ({functions, args: extendedArgs, sources, context}) => (ast, {meta = 5} = {}) => {
     const pipes = ast.pipes;
 
     if (pipes.length === 0) return ast;
 
     // ordered [['$1', 'toInt:arg1:arg2'], ['$2', 'isEven:arg1:arg2']]
-    const fnPipeline = F.map(({function: functionName, args = []}) => {
+    const fnPipeline = F.map(({function: functionName, type = 'inline', args = []}) => {
 // eslint-disable-next-line prefer-const
         const enrichedFunctions = {...functions, '*': bins.flatten, '**': bins.doubleFlatten};
         if (!(functionName in enrichedFunctions)) {
             throw new Error(`could not resolve function name [${functionName}]`); // @TODO: Alternatives to throwing inside a mapping!!!!
         }
 
-        /*
-        * A function accepting an argument should return a function of arity one that receives the value rendered
-        * example: take(n)(data), parseInt(base)(data), etc ...
-        */
-
-        /**
-         * For functions of arity > 1, the engine supports one slot (only) syntax @TODO: support multiple slots
-         * example: equals:100:__
-         *
-         */
-        const phIndex = args.indexOf('__');
         let fn = enrichedFunctions[functionName];
-        if (phIndex >= 0) {
-            // args[phIndex] = F.__;
-            fn = F.oneslot(fn)(...parseTextArgs(...args)); // placeholder functions are normal functions, since renderedValue is passed into placeholder position with F.oneslot, which already creates a higher order function
-            return fn;
-        } else if (args.length === 0) {
-            return fn;  // no args functions are normal functions that receive the renderedValue
+
+        if (type === 'extended') {
+            const fnArgKeys = [`$.${context.path.join('.')}`, context.path.slice(-1).pop(), functionName];
+            const argList = normalizeArgs({functions, args: extendedArgs})(fnArgKeys, sources['origin']); // sources['origin'] === document
+            return fn(...argList); // {{} | @foo } here foo is a higher order function, (...extendedArgs) => nodeValue => {}
         } else {
-            const fn2 = fn(...parseTextArgs(...args));
-            return F.isFunction(fn2) ? fn2 : F.lazy(fn2);
+
+            /*
+            * A function accepting an argument should return a function of arity one that receives the value rendered
+            * example: take(n)(data), parseInt(base)(data), etc ...
+            */
+
+            /**
+             * For functions of arity > 1, the engine supports one slot (only) syntax @TODO: support multiple slots
+             * example: equals:100:__
+             *
+             */
+            const phIndex = args.indexOf('__');
+            if (phIndex >= 0) {
+                // args[phIndex] = F.__;
+                fn = F.oneslot(fn)(...parseTextArgs(...args)); // placeholder functions are normal functions, since renderedValue is passed into placeholder position with F.oneslot, which already creates a higher order function
+                return fn;
+            } else if (args.length === 0) {
+                return fn;  // no args functions are normal functions that receive the renderedValue
+            } else {
+                const fn2 = fn(...parseTextArgs(...args));
+                return F.isFunction(fn2) ? fn2 : F.lazy(fn2);
+            }
         }
     }, pipes);
 
     return {...ast, '@meta': meta, value: F.pipe(...fnPipeline)(ast.value)}; // we would love to unleash pipes (short circuit pipe), but current implementation would unreduce value reduced by functions. @TODO revisit later
 };
 
-const pipeOperator = ({functions}) => F.composes(pipe({functions}), bins.has('$.pipes'));
+const pipeOperator = ({functions, args, sources, context}) => F.composes(pipe({functions, args, sources, context}), bins.has('$.pipes'));
 
 /**
  * op = [ .+ | .N | >+ | >N | %+ | %N ]
@@ -329,8 +350,8 @@ const inceptionPreprocessor = ast => {
     return {...ast, operator: operator, $depth: repeat};
 };
 
-const applyAll = ({meta, sources, tags, functions, context, config, stages}) => F.composes(
-    pipeOperator({functions}),
+const applyAll = ({meta, sources, tags, functions, args, context, config, stages}) => F.composes(
+    pipeOperator({functions, args, sources, context}),
     enumerateOperator,
     symbolOperator({tags, context, sources, stages}),
     constraintOperator({sources, config}),
@@ -339,6 +360,7 @@ const applyAll = ({meta, sources, tags, functions, context, config, stages}) => 
 );
 
 module.exports = {
+    normalizeArgs,
     regex,
     jpify,
     deref,

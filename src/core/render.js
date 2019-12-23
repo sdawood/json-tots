@@ -34,6 +34,7 @@ function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags
         sources,
         tags,
         functions,
+        args,
         context: contextRef,
         config
     }), refList);
@@ -41,23 +42,10 @@ function renderStringNode(contextRef, {meta = 0, sources = {'default': {}}, tags
     return {rendered, asts: derefedList};
 }
 
-const normalizeArgs = ({functions, args}) => ([fnPath, fnKey, fnName], data) => {
-    const fnArgs = args[fnPath] || args[fnKey] || args[fnName];
-    if (fnArgs === undefined) return [];
-
-    const fnArgList = F.isArray(fnArgs) ? fnArgs : [fnArgs];
-
-    const argList = F.map(arg => {
-        return arg.path ? jp.value(data, arg.path) : arg.value !== undefined ? arg.value : arg;
-    }, fnArgList);
-
-    return argList;
-};
-
 function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default': {}}, tags = {}, functions = {}, args = {}, config} = {}, document) {
     // eslint-disable-next-line no-template-curly-in-string
     const missingFunctionError = sx.lazyTemplate('Error: No such builtin function: [${node}]');
-    const evaluateArgs = normalizeArgs({functions, args});
+    const evaluateArgs = operators.normalizeArgs({functions, args});
     const node = contextRef.node;
     const [fnName, ...fnExprs] = node.slice(1).split(operators.regex.PIPE);
     const fn = functions[fnName] || (config.throws ? () => {
@@ -84,7 +72,7 @@ function renderFunctionExpressionNode(contextRef, {meta = 0, sources = {'default
         }, fnExprs)
     ]);
 
-    const fnArgKeys = [`$.${contextRef.path.join('.')}`, contextRef.path.pop(), fnName];
+    const fnArgKeys = [`$.${contextRef.path.join('.')}`, contextRef.path.slice(-1).pop(), fnName];
     const argList = evaluateArgs(fnArgKeys, document);
 
     return {rendered: F.reduced(fnPipeline(...argList))};

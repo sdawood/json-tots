@@ -869,3 +869,35 @@ describe('scenario: key policies', () => {
         });
     });
 });
+
+describe('evaluates @foo within template "} pipes }" with extendedArgs', () => {
+    it('behaves exactly like an @foo within functionExpressionTemplate', () => {
+        const template = {
+            a: {
+                b: {
+                    pipeWithExtendedArgs: '{{inStockCount} | @classify | toUpperCase | intoRecord | stringify:__:null:0 }'
+                }
+            }
+        };
+
+        const functions = {
+            classify: (low, high) => value => value <= low ? 'low' : value >= high ? 'high' : 'ok',
+            intoRecord: classification => ({classification})
+        };
+
+        const args = {
+            '$.a.b.pipeWithExtendedArgs': [
+                10,
+                80
+            ]
+        };
+        const result = transform(template, {functions, args})(document);
+        expect(result).toEqual({
+            "a": {
+                "b": {
+                    "pipeWithExtendedArgs": "{\"classification\":\"HIGH\"}"
+                }
+            }
+        });
+    });
+});
