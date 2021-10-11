@@ -1,6 +1,6 @@
 {
-  "name": "json-tots",
-  "version": "3.2.0",
+  "name": "wr-json-tots",
+  "version": "1.0.0",
   "description": "Template of Templates, a.k.a Template Should Eat Itself",
   "main": "lib/transform.js",
   "scripts": {
@@ -56,7 +56,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sdawood/json-tots.git"
+    "url": "https://github.com/winstonralph/json-tots.git"
   },
   "keywords": [
     "JSON",
@@ -76,10 +76,10 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Shaady Dawood <shaadydawood@gmail.com> (http://github.com/sdawood/)",
+  "author": "Winston Ralph",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sdawood/json-tots/issues"
+    "url": "https://github.com/winstonralph/json-tots/issues"
   },
-  "homepage": "https://github.com/sdawood/json-tots#readme"
+  "homepage": "https://github.com/winstonralph/json-tots#readme"
 }
