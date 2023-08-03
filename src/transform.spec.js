@@ -392,6 +392,34 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     });
 });
 
+describe('enumeration operator', () => {
+    const template = {
+        objectValues: '{*{tags}}',
+        ObjectEntries: '{**{tags}}'
+    };
+
+    const expectedResult = {
+        objectValues: [],
+        ObjectEntries: [],
+    };
+
+    let result;
+    const templateClone = traverse(template).clone();
+
+    beforeEach(() => {
+        result = transform(templateClone)(document);
+    });
+
+    it('enumerates object values and object entries', () => {
+        expect(result).toEqual(expectedResult);
+    });
+
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+
 describe('inception, apply first element as `document` to n successor array elements as template, the opposite and zip-align', () => {
     const template = {
         name: '{{title}}',
