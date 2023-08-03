@@ -3,12 +3,9 @@ master|develop|npm
 [![Build Status](https://travis-ci.org/sdawood/json-tots.svg?branch=master)](https://travis-ci.org/sdawood/json-tots)|[![Build Status](https://travis-ci.org/sdawood/json-tots.svg?branch=develop)](https://travis-ci.org/sdawood/json-tots)|[![npm version](https://badge.fury.io/js/json-tots.svg)](https://badge.fury.io/js/json-tots)
 
 # json-tots
-
-## Please take a moment to ...
-[Help keep json-tots alive and support async-json-tots development](https://www.patreon.com/shaady)
-
 `json-tots` offers a JSON Template Of Templates Declarative Transformation and Rendering engine.
 Everything is JSON, the template, the document, and extended arguments for template functions.
+Always think of your transformations as a pipeline of more than one template, where every output of a render is fed as a document for the next template rendering; when you do so, you should rarely walk into corner cases that you might wonder if a complicated feature should cover such an elaborate use case.
 
 json-tots supports:
 - JSON shape transformation
