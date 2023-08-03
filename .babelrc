@@ -1,6 +1,6 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "targets": {
         "node": "4.3",
         "browsers": ["last 10 versions", "ie >= 7"]
@@ -8,10 +8,10 @@
       "debug": false
     }]
   ],
-  "plugins": ["transform-object-rest-spread",
-    ["transform-runtime", {
-      "polyfill": false,
-      "regenerator": true
+  "plugins": ["@babel/plugin-transform-object-rest-spread",
+    ["@babel/plugin-transform-runtime", {
+      "regenerator": true,
+      "corejs": 3
     }]
   ]
 }

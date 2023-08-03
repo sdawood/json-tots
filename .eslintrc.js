@@ -1,17 +1,13 @@
 // Available settings at http://eslint.org/docs/user-guide/configuring
 module.exports = {
-    "ecmaVersion": "6",
-    "parser": "babel-eslint",
-    "ecmaFeatures": {
-        "impliedStrict": true
-    },
+    "parser": "@babel/eslint-parser",
     "env": {
         "es6": true,
         "node": true,
         "jest": true
     },
     "extends": [
-        "eslint:all"
+        "eslint:recommended"
     ],
     "rules": {
         // Rules definitions at http://eslint.org/docs/rules/
