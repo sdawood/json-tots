@@ -178,12 +178,12 @@ const enumerate = (ast, {meta = 4} = {}) => {
         '**': ast => ({...ast, value: [...F.iterator(ast.value, {indexed: true, kv: true})]}) // TODO: do scenarios of ** python style k/v pairs expansion fit with jsonpath?
     };
 
-    const {operator, repeat} = ast.operators.enumerate;
-    const result = ops[repeat === 1 ? operator : operator + operator](ast);
+    const {operator, repeat} = ast.operators.enumeration;
+    const result = ops[repeat === 0 ? operator : operator + operator](ast);
     return {...result, '@meta': meta};
 };
 
-const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumerate'));
+const enumerateOperator = F.composes(enumerate, bins.has('$.operators.enumeration'));
 
 const parseTextArgs = (...args) => {
     const parseNumeric = text => {

@@ -392,15 +392,69 @@ describe('simple interpolation with query modifiers [+] with arguments + constra
     });
 });
 
-describe('enumeration operator', () => {
+describe('enumeration operator of values {*{', () => {
     const template = {
-        objectValues: '{*{tags}}',
-        ObjectEntries: '{**{tags}}'
+        values: '{*{tags}}',
     };
 
     const expectedResult = {
-        objectValues: [],
-        ObjectEntries: [],
+        values: [
+            { author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS' },
+            { author: 'anonymousUser2', timestamp: '2017MMDDHHmmssSSS' },
+            { author: 'memberUser3', timestamp: '2015MMDDHHmmssSSS' },
+            { author: 'memberUser4', timestamp: '2015MMDDHHmmssSSS' },
+            { author: 'memberUser5', timestamp: '2015MMDDHHmmssSSS' },
+            { author: 'memberUser6', timestamp: '2015MMDDHHmmssSSS' }
+          ],
+    };
+    let result;
+    const templateClone = traverse(template).clone();
+
+    beforeEach(() => {
+        result = transform(templateClone)(document);
+    });
+
+    it('enumerates object values', () => {
+        expect(result.values).toEqual(expectedResult.values);
+    });
+    
+    it('does not mutate the template', () => {
+        expect(templateClone).toEqual(template);
+    });
+});
+
+describe('enumeration operator of entries {**{', () => {
+    const template = {
+        entries: '{**{tags}}',
+    };
+
+    const expectedResult = {
+        entries: [
+            [
+              'hot',
+              { author: 'anonymousUser1', timestamp: '2016MMDDHHmmssSSS' }
+            ],
+            [
+              'seasonal',
+              { author: 'anonymousUser2', timestamp: '2017MMDDHHmmssSSS' }
+            ],
+            [
+              'personalTransportation',
+              { author: 'memberUser3', timestamp: '2015MMDDHHmmssSSS' }
+            ],
+            [
+              'tag-name-with-dash',
+              { author: 'memberUser4', timestamp: '2015MMDDHHmmssSSS' }
+            ],
+            [
+              'tag name with spaces',
+              { author: 'memberUser5', timestamp: '2015MMDDHHmmssSSS' }
+            ],
+            [
+              'tag.name.with.dots',
+              { author: 'memberUser6', timestamp: '2015MMDDHHmmssSSS' }
+            ]
+          ],
     };
 
     let result;
@@ -409,9 +463,9 @@ describe('enumeration operator', () => {
     beforeEach(() => {
         result = transform(templateClone)(document);
     });
-
-    it('enumerates object values and object entries', () => {
-        expect(result).toEqual(expectedResult);
+    
+    it('enumerates object entries', () => {
+        expect(result.entries).toEqual(expectedResult.entries);
     });
 
     it('does not mutate the template', () => {
