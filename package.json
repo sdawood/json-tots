@@ -7,7 +7,7 @@
     "commit": "git-cz",
     "test": "node_modules/.bin/jest --verbose",
     "prebuild": "rimraf lib",
-    "build": "babel --copy-files --out-dir lib --ignore *.spec.js src",
+    "build": "babel src --out-dir lib --ignore 'src/**/*.spec.js','src/**/*.test.js'",
     "eslint": "node_modules/.bin/eslint src --quiet",
     "semantic-release": "semantic-release",
     "travis-deploy-once": "travis-deploy-once"
